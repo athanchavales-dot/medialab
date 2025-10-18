@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Oak Hill Media Lab</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css" />
+  <meta name="theme-color" content="#ffffff">
+</head>
+<body>
+  <header class="app-header" role="banner">
+    <img src="assets/logo.png" alt="Oak Hill Media Lab logo" class="logo" />
+    <h1 id="appTitle">Oak Hill Media Lab</h1>
+    <div class="header-actions">
+      <button id="themeToggle" aria-pressed="false" title="Toggle high contrast">High Contrast</button>
+      <button id="dysToggle" aria-pressed="false" title="Toggle dyslexia-friendly font">Dyslexia Font</button>
+      <span id="userChip" class="chip" hidden></span>
+      <button id="logoutBtn" class="secondary" hidden>Log out</button>
+    </div>
+  </header>
+
+  <main id="app" role="main">
+    <!-- Login View -->
+    <section id="view-login" class="view active" aria-labelledby="loginHeading">
+      <h2 id="loginHeading">Sign in</h2>
+      <p class="muted">Use your school account. (Demo mode stores accounts in your browser.)</p>
+      <form id="loginForm" class="card" autocomplete="on">
+        <label>Email
+          <input id="loginEmail" type="email" required aria-required="true" autocomplete="email" />
+        </label>
+        <label>Password
+          <input id="loginPass" type="password" required aria-required="true" autocomplete="current-password"/>
+        </label>
+        <button type="submit">Sign in</button>
+      </form>
+
+      <details class="help">
+        <summary>First time? (Admin quick start)</summary>
+        <p>Default admin (demo): <code>admin@oakhill.local</code> / <code>admin123</code></p>
+      </details>
+    </section>
+
+    <!-- Student Dashboard -->
+    <section id="view-student" class="view" aria-labelledby="studentHeading">
+      <h2 id="studentHeading">Student Dashboard</h2>
+      <div class="progress-wrap card">
+        <div>
+          <strong>Overall Progress</strong>
+          <div id="progressBar" class="progress"><div id="progressFill" style="width:0%"></div></div>
+          <span id="progressText">0% complete</span>
+        </div>
+        <button id="exportMyData" class="secondary">Export my data (JSON)</button>
+      </div>
+
+      <div class="grid">
+        <div id="stagesContainer" class="stage-grid"></div>
+      </div>
+    </section>
+
+    <!-- Teacher Dashboard -->
+    <section id="view-teacher" class="view" aria-labelledby="teacherHeading">
+      <h2 id="teacherHeading">Teacher Dashboard</h2>
+      <div class="toolbar">
+        <input id="searchStudent" type="search" placeholder="Search students…" aria-label="Search students"/>
+        <button id="exportCSV" class="secondary">Export Progress (CSV)</button>
+      </div>
+      <div id="teacherList" class="list"></div>
+
+      <dialog id="studentModal" aria-label="Review student work">
+        <form method="dialog">
+          <h3 id="studentModalTitle">Review</h3>
+          <div id="studentReviewContent"></div>
+          <menu>
+            <button value="cancel" class="secondary">Close</button>
+          </menu>
+        </form>
+      </dialog>
+    </section>
+
+    <!-- Admin Dashboard -->
+    <section id="view-admin" class="view" aria-labelledby="adminHeading">
+      <h2 id="adminHeading">Admin</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Create / Edit User</h3>
+          <form id="userForm" autocomplete="off">
+            <label>Display Name
+              <input id="uName" required />
+            </label>
+            <label>Email
+              <input id="uEmail" type="email" required />
+            </label>
+            <label>Password
+              <input id="uPass" type="password" required />
+            </label>
+            <label>Role
+              <select id="uRole" required>
+                <option value="student">Student</option>
+                <option value="teacher">Teacher</option>
+                <option value="admin">Admin</option>
+              </select>
+            </label>
+            <button type="submit">Save User</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h3>All Users</h3>
+          <div id="userTable" class="list"></div>
+        </div>
+
+        <div class="card">
+          <h3>Settings</h3>
+          <label><input type="checkbox" id="allowPDF" checked/> Allow PDF uploads</label>
+          <label><input type="checkbox" id="allowImages" checked/> Allow images (PNG/JPG)</label>
+          <label><input type="checkbox" id="allowVideo" checked/> Allow video (MP4)</label>
+          <button id="saveSettings" class="secondary">Save Settings</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer" role="contentinfo">
+    <small>© Oak Hill School Media Lab</small>
+  </footer>
+
+  <script src="idb.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
