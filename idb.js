@@ -1,6 +1,6 @@
 (function(){
   const dbName = 'oakhill-media-lab';
-  const version = 5;
+  const version = 6;
   let db;
   window.idbReady = new Promise((resolve, reject)=>{
     const req = indexedDB.open(dbName, version);

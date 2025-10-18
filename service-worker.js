@@ -1,4 +1,4 @@
-const CACHE='oakhill-media-lab-v4';
+const CACHE='oakhill-media-lab-v5';
 const ASSETS=['./','./index.html','./style.css','./app.js','./idb.js','./assets/logo.png','./manifest.json'];
 self.addEventListener('install',e=>{
   e.waitUntil(
