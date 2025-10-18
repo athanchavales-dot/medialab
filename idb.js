@@ -1,17 +1,17 @@
-// Minimal IndexedDB helper (promisified)
 (function(){
   const dbName = 'oakhill-media-lab';
-  const version = 1;
+  const version = 2;
   let db;
 
   window.idbReady = new Promise((resolve, reject)=>{
     const req = indexedDB.open(dbName, version);
     req.onupgradeneeded = e=>{
       const db = e.target.result;
-      db.createObjectStore('users', { keyPath:'email' });
-      db.createObjectStore('settings', { keyPath:'key' });
-      db.createObjectStore('projects', { keyPath:'id' }); // {id: email, stages:{...}, feedback:{}}
-      db.createObjectStore('files', { keyPath:'id' });    // {id, email, stage, name, type, blob}
+      if (!db.objectStoreNames.contains('users')) db.createObjectStore('users', { keyPath:'email' });
+      if (!db.objectStoreNames.contains('settings')) db.createObjectStore('settings', { keyPath:'key' });
+      if (!db.objectStoreNames.contains('projects')) db.createObjectStore('projects', { keyPath:'id' });
+      if (!db.objectStoreNames.contains('files')) db.createObjectStore('files', { keyPath:'id' });
+      if (!db.objectStoreNames.contains('comments')) db.createObjectStore('comments', { keyPath:'id' }); // {id, email, stage, authorRole, author, text, ts}
     };
     req.onsuccess = ()=>{ db = req.result; resolve(db); };
     req.onerror = ()=>reject(req.error);

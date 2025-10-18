@@ -18,7 +18,7 @@ h1,h2,h3{margin:8px 0 12px}
 .card{background:var(--card);padding:16px;border-radius:var(--radius);box-shadow:var(--shadow);margin:0 0 16px}
 .grid{display:grid;gap:16px}
 .grid-2{grid-template-columns:repeat(2,1fr)}
-.stage-grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.stage-grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
 button, input, select, textarea{font:inherit}
 button{background:var(--brand);color:white;border:none;border-radius:12px;padding:10px 14px;cursor:pointer}
 button.secondary{background:#eee;color:#111}
@@ -41,7 +41,12 @@ label{display:block;margin:8px 0}
 .uploads{font-size:14px;color:#333;margin-top:8px}
 .uploads a{display:block;word-break:break-all}
 textarea{min-height:96px}
-dialog{border:none;border-radius:16px;box-shadow:var(--shadow);width:min(900px,95vw)}
-@media (prefers-reduced-motion: reduce){
-  *{scroll-behavior:auto;animation: none;transition: none}
-}
+dialog{border:none;border-radius:16px;box-shadow:var(--shadow);width:min(1000px,95vw)}
+.file-preview{display:grid;gap:8px}
+.file-preview img, .file-preview video{max-width:100%;border-radius:12px}
+.file-preview object{width:100%;height:480px;border:1px solid #eee;border-radius:12px}
+.rubric{border-collapse:collapse;width:100%;background:#fff;border-radius:12px;overflow:hidden}
+.rubric th, .rubric td{border:1px solid #eee;padding:8px;text-align:left}
+.badges{display:flex;gap:8px;flex-wrap:wrap}
+.badge-tile{background:#fff;border:1px solid #eee;border-radius:12px;padding:8px 12px}
+@media (prefers-reduced-motion: reduce){ *{scroll-behavior:auto;animation:none;transition:none}}
