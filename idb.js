@@ -1,6 +1,6 @@
 (function(){
   const dbName = 'oakhill-media-lab';
-  const version = 2;
+  const version = 3;
   let db;
 
   window.idbReady = new Promise((resolve, reject)=>{
@@ -8,10 +8,9 @@
     req.onupgradeneeded = e=>{
       const db = e.target.result;
       if (!db.objectStoreNames.contains('users')) db.createObjectStore('users', { keyPath:'email' });
-      if (!db.objectStoreNames.contains('settings')) db.createObjectStore('settings', { keyPath:'key' });
       if (!db.objectStoreNames.contains('projects')) db.createObjectStore('projects', { keyPath:'id' });
       if (!db.objectStoreNames.contains('files')) db.createObjectStore('files', { keyPath:'id' });
-      if (!db.objectStoreNames.contains('comments')) db.createObjectStore('comments', { keyPath:'id' }); // {id, email, stage, authorRole, author, text, ts}
+      if (!db.objectStoreNames.contains('submissions')) db.createObjectStore('submissions', { keyPath:'id' }); // {id,email,stage,status,data,ts}
     };
     req.onsuccess = ()=>{ db = req.result; resolve(db); };
     req.onerror = ()=>reject(req.error);

@@ -24,7 +24,6 @@
     <!-- Login View -->
     <section id="view-login" class="view active" aria-labelledby="loginHeading">
       <h2 id="loginHeading">Sign in</h2>
-      <p class="muted">Use your school account. (Demo mode stores accounts in your browser.)</p>
       <form id="loginForm" class="card" autocomplete="on">
         <label>Email
           <input id="loginEmail" type="email" required aria-required="true" autocomplete="email" />
@@ -34,7 +33,6 @@
         </label>
         <button type="submit">Sign in</button>
       </form>
-
       <details class="help">
         <summary>First time? (Admin quick start)</summary>
         <p>Default admin (demo): <code>admin@oakhill.local</code> / <code>admin123</code></p>
@@ -52,10 +50,9 @@
         </div>
         <div class="stage-actions">
           <button id="exportMyData" class="secondary">Export my data (JSON)</button>
-          <button id="certificateBtn" class="secondary" title="Generate certificate when all stages approved">Generate Certificate</button>
+          <button id="certificateBtn" class="secondary">Generate Certificate</button>
         </div>
       </div>
-
       <div id="stagesContainer" class="stage-grid"></div>
     </section>
 
@@ -79,17 +76,10 @@
       </dialog>
     </section>
 
-    <!-- Guardian Dashboard (read-only) -->
-    <section id="view-guardian" class="view" aria-labelledby="guardianHeading">
-      <h2 id="guardianHeading">Guardian View (Read-only)</h2>
-      <p class="muted">Linked student progress and uploads.</p>
-      <div id="guardianContent"></div>
-    </section>
-
     <!-- Admin Dashboard -->
     <section id="view-admin" class="view" aria-labelledby="adminHeading">
       <h2 id="adminHeading">Admin</h2>
-      <div class="grid grid-2">
+      <div class="grid">
         <div class="card">
           <h3>Create / Edit User</h3>
           <form id="userForm" autocomplete="off">
@@ -101,32 +91,14 @@
                 <option value="student">Student</option>
                 <option value="teacher">Teacher</option>
                 <option value="admin">Admin</option>
-                <option value="guardian">Guardian (read-only)</option>
               </select>
-            </label>
-            <label id="guardianOfWrap" class="hidden">Guardian of (student email)
-              <input id="guardianOf" type="email" placeholder="student@example.com" />
             </label>
             <button type="submit">Save User</button>
           </form>
         </div>
-
         <div class="card">
           <h3>All Users</h3>
           <div id="userTable" class="list"></div>
-        </div>
-
-        <div class="card">
-          <h3>Settings</h3>
-          <label><input type="checkbox" id="allowPDF" checked/> Allow PDF uploads</label>
-          <label><input type="checkbox" id="allowImages" checked/> Allow images (PNG/JPG)</label>
-          <label><input type="checkbox" id="allowVideo" checked/> Allow video (MP4)</label>
-          <h4>Stage Resources (links to worksheets/slides)</h4>
-          <label>Development (URL) <input id="resDev" placeholder="https://...docx or .pptx or PDF"/></label>
-          <label>Pre-Production (URL) <input id="resPre" placeholder="https://..."/></label>
-          <label>Production (URL) <input id="resPro" placeholder="https://..."/></label>
-          <label>Post-Production (URL) <input id="resPost" placeholder="https://..."/></label>
-          <button id="saveSettings" class="secondary">Save Settings</button>
         </div>
       </div>
     </section>
@@ -135,6 +107,18 @@
   <footer class="app-footer" role="contentinfo">
     <small>© Oak Hill School Media Lab</small>
   </footer>
+
+  <!-- Worksheet Dialog -->
+  <dialog id="worksheetDialog" aria-label="Worksheet">
+    <form method="dialog">
+      <h3 id="wsTitle">Worksheet</h3>
+      <p id="wsDesc" class="muted"></p>
+      <div id="wsForm" class="card"></div>
+      <menu>
+        <button value="cancel" class="secondary">Close</button>
+      </menu>
+    </form>
+  </dialog>
 
   <script src="idb.js"></script>
   <script src="app.js"></script>
