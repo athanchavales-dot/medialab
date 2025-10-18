@@ -323,3 +323,17 @@ function updateOverall(proj){ const pct=progressPercent(proj); $('#progressFill'
 function hash(str){ let h=0; for(let i=0;i<str.length;i++){ h=((h<<5)-h)+str.charCodeAt(i); h|=0; } return String(h); }
 function escapeHTML(s){ return String(s||'').replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]||c)); }
 function downloadFile(name, type, data){ const blob=new Blob([data],{type}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); }
+
+
+/* --- Safe fallback: renderWorksheetInto (exposed on window) --- */
+async function renderWorksheetInto(email, stage, elemId, statusId){
+  const sub = await getSubmission(email, stage);
+  const box = document.getElementById(elemId);
+  const status = document.getElementById(statusId);
+  if (status) status.textContent = sub ? (sub.status || 'draft') : 'Not started';
+  if (!box) return;
+  if (!sub){ box.innerHTML = '<p class="muted">No submission yet.</p>'; return; }
+  const fields = (WORKSHEETS[stage] || []);
+  box.innerHTML = fields.map(f=>`<p><strong>${f.label}:</strong><br>${escapeHTML(sub.data?.[f.id]||'—')}</p>`).join('');
+}
+window.renderWorksheetInto = renderWorksheetInto;
