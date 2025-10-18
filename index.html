@@ -21,26 +21,17 @@
   </header>
 
   <main id="app" role="main">
-    <!-- Login View -->
     <section id="view-login" class="view active" aria-labelledby="loginHeading">
       <h2 id="loginHeading">Sign in</h2>
       <p class="muted">Use your school account. (Demo mode stores accounts in your browser.)</p>
       <form id="loginForm" class="card" autocomplete="on">
-        <label>Email
-          <input id="loginEmail" type="email" required aria-required="true" autocomplete="email" />
-        </label>
-        <label>Password
-          <input id="loginPass" type="password" required aria-required="true" autocomplete="current-password"/>
-        </label>
+        <label>Email <input id="loginEmail" type="email" required autocomplete="email" /></label>
+        <label>Password <input id="loginPass" type="password" required autocomplete="current-password"/></label>
         <button type="submit">Sign in</button>
       </form>
-      <details class="help">
-        <summary>First time? (Admin quick start)</summary>
-        <p>Default admin (demo): <code>admin@oakhill.local</code> / <code>admin123</code></p>
-      </details>
+      <details class="help"><summary>First time?</summary><p>Admin demo: <code>admin@oakhill.local</code> / <code>admin123</code></p></details>
     </section>
 
-    <!-- Student Dashboard -->
     <section id="view-student" class="view" aria-labelledby="studentHeading">
       <h2 id="studentHeading">Student Dashboard</h2>
       <div class="progress-wrap card">
@@ -51,13 +42,12 @@
         </div>
         <div class="stage-actions">
           <button id="exportMyData" class="secondary">Export my data (JSON)</button>
-          <button id="certificateBtn" class="secondary" title="Generate certificate when all stages approved">Generate Certificate</button>
+          <button id="certificateBtn" class="secondary">Generate Certificate</button>
         </div>
       </div>
       <div id="stagesContainer" class="stage-grid"></div>
     </section>
 
-    <!-- Teacher Dashboard -->
     <section id="view-teacher" class="view" aria-labelledby="teacherHeading">
       <h2 id="teacherHeading">Teacher Dashboard</h2>
       <div class="toolbar">
@@ -70,27 +60,22 @@
         <form method="dialog">
           <h3 id="studentModalTitle">Review</h3>
           <div id="studentReviewContent"></div>
-          <menu>
-            <button value="cancel" class="secondary">Close</button>
-          </menu>
+          <menu><button value="cancel" class="secondary">Close</button></menu>
         </form>
       </dialog>
     </section>
 
-    <!-- Guardian Dashboard (read-only) -->
     <section id="view-guardian" class="view" aria-labelledby="guardianHeading">
       <h2 id="guardianHeading">Guardian View (Read-only)</h2>
-      <p class="muted">Linked student progress and uploads.</p>
       <div id="guardianContent"></div>
     </section>
 
-    <!-- Admin Dashboard -->
     <section id="view-admin" class="view" aria-labelledby="adminHeading">
       <h2 id="adminHeading">Admin</h2>
       <div class="grid grid-2">
         <div class="card">
           <h3>Create / Edit User</h3>
-          <form id="userForm" autocomplete="off">
+          <form id="userForm">
             <label>Display Name <input id="uName" required /></label>
             <label>Email <input id="uEmail" type="email" required /></label>
             <label>Password <input id="uPass" type="password" required /></label>
@@ -108,31 +93,24 @@
             <button type="submit">Save User</button>
           </form>
         </div>
-
-        <div class="card">
-          <h3>All Users</h3>
-          <div id="userTable" class="list"></div>
-        </div>
-
+        <div class="card"><h3>All Users</h3><div id="userTable" class="list"></div></div>
         <div class="card">
           <h3>Settings</h3>
           <label><input type="checkbox" id="allowPDF" checked/> Allow PDF uploads</label>
           <label><input type="checkbox" id="allowImages" checked/> Allow images (PNG/JPG)</label>
           <label><input type="checkbox" id="allowVideo" checked/> Allow video (MP4)</label>
-          <h4>Stage Resources (links to worksheets/slides)</h4>
-          <label>Development (URL) <input id="resDev" placeholder="https://...docx or .pptx or PDF"/></label>
-          <label>Pre-Production (URL) <input id="resPre" placeholder="https://..."/></label>
-          <label>Production (URL) <input id="resPro" placeholder="https://..."/></label>
-          <label>Post-Production (URL) <input id="resPost" placeholder="https://..."/></label>
+          <h4>Stage Resources (links)</h4>
+          <label>Development <input id="resDev" placeholder="https://..."/></label>
+          <label>Pre-Production <input id="resPre" placeholder="https://..."/></label>
+          <label>Production <input id="resPro" placeholder="https://..."/></label>
+          <label>Post-Production <input id="resPost" placeholder="https://..."/></label>
           <button id="saveSettings" class="secondary">Save Settings</button>
         </div>
       </div>
     </section>
   </main>
 
-  <footer class="app-footer" role="contentinfo">
-    <small>© Oak Hill School Media Lab</small>
-  </footer>
+  <footer class="app-footer" role="contentinfo"><small>© Oak Hill School Media Lab</small></footer>
 
   <!-- Worksheet Dialog -->
   <dialog id="worksheetDialog" aria-label="Worksheet">
@@ -140,9 +118,7 @@
       <h3 id="wsTitle">Worksheet</h3>
       <p id="wsDesc" class="muted"></p>
       <div id="wsForm" class="card"></div>
-      <menu>
-        <button value="cancel" class="secondary">Close</button>
-      </menu>
+      <menu><button value="cancel" class="secondary">Close</button></menu>
     </form>
   </dialog>
 
