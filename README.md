@@ -1,16 +1,27 @@
-# Oak Hill Media Lab – Enhanced (SEN-friendly)
+# Oak Hill Media Lab – Merged PLUS + Submissions
 
-Added features:
-- Rubrics & Badges (Gold/Silver/Bronze) per stage
-- Certificate generator (HTML → print to PDF)
-- Comment threads (teacher ↔ student) per stage
-- Guardian (read-only) view linked to a student
-- Inline media previews for PDF / image / video
-- Stage resource links (paste URLs to your DOCX/PPTX/PDF in Admin → Settings)
+This build merges:
+- Rubrics/Badges, Certificate, Comments, Guardian view, Inline media previews, Stage resources
+- AND per-stage **Worksheets** with **Submit for review** (Student) and **Approve/Return** (Teacher).
 
-## Admin tips
-- To create a Guardian, choose role *Guardian* and set "Guardian of" to the student's email.
-- Paste your worksheet/slide URLs (e.g. GitHub raw links, Google Drive share links) in Settings so students can open them from stage cards.
+## Quick start (GitHub Pages)
+1) Upload all files to a GitHub repo (root).  
+2) Settings → Pages → Deploy from branch → main → /(root).  
+3) Open your Pages URL.  
+4) Admin (demo): `admin@oakhill.local` / `admin123`
 
-## Notes
-- For a true PDF export without the print dialog, integrate a client-side PDF lib; this MVP uses the browser print-to-PDF for simplicity.
+## Admin
+- Create Students / Teachers / Guardians.  
+- Settings → paste URLs for stage resources (DOCX/PPTX/PDF).
+
+## Teacher
+- Dashboard → Open student → view **Worksheet Submission** (status, answers), **Rubric**, **Feedback**, **Comments**.  
+- **Approve Stage** or **Return for edits**; students see current status.
+
+## Student
+- Open stage → **Open Worksheet**, fill & **Save Draft**.  
+- **Submit for review** when ready; teacher can return or approve.  
+- Complete all stages, then **Generate Certificate**.
+
+## Storage
+- Offline-first via IndexedDB (demo). Replace with Firebase for real multi-device sync.

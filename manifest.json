@@ -2,5 +2,14 @@
   "name": "Oak Hill Media Lab",
   "short_name": "Media Lab",
   "start_url": "/",
-  "display": "standalone"
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffcc00",
+  "icons": [
+    {
+      "src": "assets/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
 }
