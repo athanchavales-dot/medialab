@@ -576,3 +576,24 @@ async function buildZip(files){
   for (const c of chunks){ total.set(c, p); p += (c.byteLength||c.length||0); }
   return new Blob([total], {type:'application/zip'});
 }
+
+
+// Accessibility: theme/high-contrast toggle & skip link focus management
+document.addEventListener('DOMContentLoaded', () => {
+  const t = document.getElementById('themeToggle');
+  if (t) {
+    t.addEventListener('click', () => {
+      document.body.classList.toggle('high-contrast');
+      const on = document.body.classList.contains('high-contrast');
+      t.setAttribute('aria-pressed', String(on));
+    });
+  }
+  // Move focus to main when hash changes or after login navigation
+  const main = document.getElementById('main');
+  if (main) {
+    window.addEventListener('hashchange', () => setTimeout(()=>{ main.focus(); }, 0));
+  }
+  // Announce page ready
+  const live = document.getElementById('liveRegion');
+  if (live) live.textContent = 'Media Lab ready';
+});

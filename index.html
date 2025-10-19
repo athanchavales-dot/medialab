@@ -9,6 +9,8 @@
   <meta name="theme-color" content="#ffffff">
 </head>
 <body>
+  <a href="#main" class="skip-link">Skip to main content</a>
+  <div id="liveRegion" class="sr-only" aria-live="polite" aria-atomic="true"></div>
   <header class="app-header" role="banner">
     <img src="assets/logo.png" alt="Oak Hill Media Lab logo" class="logo" />
     <h1 id="appTitle">Oak Hill Media Lab</h1>
@@ -25,8 +27,8 @@
       <h2 id="loginHeading">Sign in</h2>
       <p class="muted">Use your school account. (Demo mode stores accounts in your browser.)</p>
       <form id="loginForm" class="card" autocomplete="on">
-        <label>Email <input id="loginEmail" type="email" required autocomplete="email" /></label>
-        <label>Password <input id="loginPass" type="password" required autocomplete="current-password"/></label>
+        <label>Email <input id="loginEmail" autocomplete="email" type="email" required autocomplete="email" /></label>
+        <label>Password <input id="loginPass" autocomplete="current-password" type="password" required autocomplete="current-password"/></label>
         <button type="submit">Sign in</button>
       </form>
       <details class="help"><summary>First time?</summary><p>Admin demo: <code>admin@oakhill.local</code> / <code>admin123</code></p></details>
@@ -77,8 +79,8 @@
           <h3>Create / Edit User</h3>
           <form id="userForm">
             <label>Display Name <input id="uName" required /></label>
-            <label>Email <input id="uEmail" type="email" required /></label>
-            <label>Password <input id="uPass" type="password" required /></label>
+            <label>Email <input id="uEmail" autocomplete="email" type="email" required /></label>
+            <label>Password <input id="uPass" autocomplete="new-password" type="password" required /></label>
             <label>Role
               <select id="uRole" required>
                 <option value="student">Student</option>
