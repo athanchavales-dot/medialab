@@ -969,3 +969,77 @@ function initAccordionSteps(){
   });
 }
 document.addEventListener('DOMContentLoaded', function(){ initAccordionSteps(); });
+
+
+// --- SEN Voice-to-Text for Worksheet fields ---
+(function(){
+  function getRecognition(lang){
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) return null;
+    try{
+      var r = new SR();
+      r.continuous = true;
+      r.interimResults = true;
+      r.lang = lang || 'en-GB';
+      return r;
+    }catch(e){ return null; }
+  }
+  function insertAtCursor(el, text){
+    if (document.selection){ el.focus(); var sel = document.selection.createRange(); sel.text = text; }
+    else if (typeof el.selectionStart === 'number'){
+      var start = el.selectionStart, end = el.selectionEnd;
+      var before = el.value.slice(0, start), after = el.value.slice(end);
+      el.value = before + text + after;
+      var pos = start + text.length;
+      el.selectionStart = el.selectionEnd = pos;
+    } else { el.value += text; }
+  }
+
+  var active = {}; // map textarea id -> recognition
+
+  function startDictate(targetId, lang){
+    if (active[targetId]) return; // already running
+    var el = document.getElementById(targetId);
+    if (!el) return;
+    var rec = getRecognition(lang);
+    if (!rec){ alert('Voice typing is not supported in this browser.'); return; }
+    active[targetId] = rec;
+    rec.onresult = function(e){
+      var finalText = '';
+      for (var i = e.resultIndex; i < e.results.length; i++){
+        var res = e.results[i];
+        var txt = res[0].transcript;
+        if (res.isFinal) finalText += txt;
+      }
+      if (finalText){ insertAtCursor(el, finalText + ' '); }
+    };
+    rec.onerror = function(){ stopDictate(targetId); };
+    rec.onend = function(){ stopDictate(targetId); };
+    try{ rec.start(); }catch(err){ stopDictate(targetId); }
+  }
+  function stopDictate(targetId){
+    var rec = active[targetId];
+    if (rec){ try{ rec.stop(); }catch(e){} }
+    delete active[targetId];
+    var btn = document.querySelector('[data-voice-target="'+targetId+'"]');
+    if (btn) btn.setAttribute('aria-pressed', 'false');
+  }
+
+  document.addEventListener('click', function(e){
+    var t = e.target;
+    if (t && t.matches('[data-voice-target]')){
+      var id = t.getAttribute('data-voice-target');
+      var wrap = t.closest('.voice-bar');
+      var langSel = wrap ? wrap.querySelector('.voice-lang') : null;
+      var lang = langSel ? langSel.value : 'en-GB';
+      if (t.getAttribute('aria-pressed') === 'true'){
+        stopDictate(id);
+      } else {
+        // stop any other active
+        Object.keys(active).forEach(stopDictate);
+        t.setAttribute('aria-pressed', 'true');
+        startDictate(id, lang);
+      }
+    }
+  });
+})();
