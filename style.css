@@ -146,3 +146,38 @@ dialog[open] { border: none; border-radius: var(--radius); box-shadow: var(--sha
 .hidden { display:none !important; }
 .block { display:block; }
 .toolbar { display:flex; gap:12px; align-items:center; flex-wrap: wrap; }
+
+
+/* ---------- SEN-Friendly Layout ---------- */
+.sen-hero{ background:#fff; border:1px solid #eee; border-radius:var(--radius); padding:16px; box-shadow:var(--shadow); margin-bottom:12px; }
+.sen-intro{ font-size:1rem; margin:0 0 8px; }
+.sen-toggles{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+.switch{ display:inline-flex; gap:8px; align-items:center; background:#f3f4f6; padding:8px 12px; border-radius:999px; border:1px solid #e5e7eb; }
+.switch input{ width:20px; height:20px; }
+
+.sen-steps{ display:grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); gap:12px; }
+.step{ background:#fff; border:1px solid #eee; border-radius:var(--radius); padding:12px; box-shadow:var(--shadow); }
+.step-head{ display:flex; align-items:center; gap:8px; }
+.step .bubble{ width:28px; height:28px; border-radius:999px; display:inline-grid; place-items:center; background:#111; color:#fff; font-weight:700; }
+.step .emoji{ margin-left:auto; font-size:20px; }
+.sen-help{ margin:8px 0; }
+.checklist{ list-style:none; padding:0; margin:8px 0; display:grid; gap:6px; }
+.checklist input{ width:20px; height:20px; }
+.step-actions{ display:flex; gap:8px; flex-wrap:wrap; }
+.btn.big{ font-size:1rem; padding:14px 18px; border-radius:16px; }
+
+.sen-progress .progress-bar{ width:100%; height:14px; background:#eee; border-radius:999px; overflow:hidden; }
+.sen-progress .progress-fill{ height:100%; background:var(--accent); }
+
+/* Teacher queues */
+.teacher-queues{ gap:12px; }
+.queue .row{ align-items: flex-start; }
+.queue .row strong{ font-size:1rem; }
+.queue .meta{ margin-top:4px; }
+
+/* Large text toggles */
+body.large-text .view, body.large-text .sen-hero, body.large-text .card{ font-size:18px; }
+body.large-text .btn{ font-size:18px; }
+
+/* Compact view for teacher */
+body.t-compact .list .row{ padding:8px; }
