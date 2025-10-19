@@ -836,6 +836,60 @@ function announce(msg){
 }
 
 
+
+// --- Robust refresher for student lists (safe if panes not present) ---
+async function refreshStudentLists(){
+  try{
+    if (typeof listMySubmissions !== 'function') return;
+
+    var stages = ['development','preproduction','production','postproduction'];
+    for (var i=0;i<stages.length;i++){
+      var st = stages[i];
+      var listEl = document.getElementById('mine-'+st);
+      var countEl = document.getElementById('count-'+st);
+      if (!listEl && !countEl) continue;
+      var items = await listMySubmissions(st);
+      if (countEl) countEl.textContent = String(items.length);
+      if (listEl){
+        listEl.innerHTML = '';
+        for (var j=0;j<items.length;j++){
+          var s = items[j];
+          var row = document.createElement('div'); row.className='row';
+          var left = document.createElement('div');
+          var top  = document.createElement('div');
+          var strong = document.createElement('strong'); strong.textContent = s.stageName;
+          top.appendChild(strong);
+          var pill = document.createElement('span'); pill.className = 'status-pill ' + s.status; pill.textContent = s.status.replace('_',' ');
+          top.appendChild(document.createTextNode(' ')); top.appendChild(pill);
+          left.appendChild(top);
+          var meta = document.createElement('div'); meta.className='meta'; meta.textContent = (new Date(s.updatedAt)).toLocaleString() + ' • ' + s.assets.length + ' file(s)';
+          left.appendChild(meta);
+          var open = document.createElement('button'); open.className='btn'; open.setAttribute('data-open-thread', s.id); open.textContent='Open thread';
+          var right = document.createElement('div'); right.appendChild(open);
+          row.appendChild(left); row.appendChild(right);
+          listEl.appendChild(row);
+        }
+      }
+    }
+
+    // Notifications (if present)
+    if (typeof pullNotices === 'function'){
+      var ul = document.getElementById('studentNotices');
+      if (ul){
+        var notes = await pullNotices();
+        ul.innerHTML = '';
+        for (var k=0;k<notes.length;k++){
+          var li = document.createElement('li');
+          li.textContent = notes[k].message + ' (' + (new Date(notes[k].createdAt)).toLocaleString() + ')';
+          ul.appendChild(li);
+        }
+      }
+    }
+  }catch(e){
+    console.warn('refreshStudentLists failed:', e);
+  }
+}
+
 async function renderStudentStages(){
   // Map steps to pane ids
   var map = {
@@ -869,11 +923,11 @@ async function renderStudentStages(){
       btn.addEventListener('click', async function(){
         var files = Array.prototype.slice.call(file.files||[]);
         await saveSubmission(st, { note: note.value, files: files });
-        note.value=''; await refreshStudentLists();
+        note.value=''; if (typeof refreshStudentLists==='function') await refreshStudentLists();
       });
     })(st, file, note);
   }
-  await refreshStudentLists();
+  if (typeof refreshStudentLists==='function') await refreshStudentLists();
 }
 
 async function handleSaveFeedback(){
@@ -890,7 +944,7 @@ async function handleSaveFeedback(){
   await saveFeedback(subId, { rubricMap: rubric, text, status, audioAssetId: FB_CTX.audioId });
   await openThread(subId);
   if (document.getElementById('subFilter')) renderTeacherSubmissions();
-  await refreshStudentLists();
+  if (typeof refreshStudentLists==='function') await refreshStudentLists();
   announce('Feedback saved.');
 }
 document.addEventListener('click', async (e)=>{
@@ -910,7 +964,7 @@ document.addEventListener('DOMContentLoaded', () => {
     await addComment(FB_CTX.subId, txt);
     document.getElementById('fbReply').value = '';
     await openThread(FB_CTX.subId);
-    await refreshStudentLists();
+    if (typeof refreshStudentLists==='function') await refreshStudentLists();
   });
 });
 
