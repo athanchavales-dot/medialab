@@ -62,7 +62,7 @@
         <form method="dialog">
           <h3 id="studentModalTitle">Review</h3>
           <div id="studentReviewContent"></div>
-          <menu><button value="cancel" class="secondary">Close</button></menu>
+          <menu><button value="cancel" class="secondary" aria-label="Close worksheet dialog">Close</button></menu>
         </form>
       </dialog>
     </section>
@@ -145,12 +145,12 @@
 
   <footer class="app-footer" role="contentinfo"><small>© Oak Hill School Media Lab</small></footer>
 
-  <dialog id="worksheetDialog" aria-label="Worksheet">
+  <dialog id="worksheetDialog" aria-label="Worksheet" aria-modal="true" role="dialog">
     <form method="dialog">
       <h3 id="wsTitle">Worksheet</h3>
       <p id="wsDesc" class="muted"></p>
       <div id="wsForm" class="card"></div>
-      <menu><button value="cancel" class="secondary">Close</button></menu>
+      <menu><button value="cancel" class="secondary" aria-label="Close worksheet dialog">Close</button></menu>
     </form>
   </dialog>
 

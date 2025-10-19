@@ -597,3 +597,67 @@ document.addEventListener('DOMContentLoaded', () => {
   const live = document.getElementById('liveRegion');
   if (live) live.textContent = 'Media Lab ready';
 });
+
+
+// --- Accessibility: trap focus inside worksheet dialog and restore on close ---
+(function(){
+  const dlg = document.getElementById('worksheetDialog');
+  if (!dlg) return;
+  let lastFocused = null;
+
+  function getFocusable(container){
+    return Array.from(container.querySelectorAll([
+      'a[href]','area[href]','input:not([disabled]):not([type="hidden"])',
+      'select:not([disabled])','textarea:not([disabled])','button:not([disabled])',
+      'iframe','audio[controls]','video[controls]','[contenteditable]','[tabindex]:not([tabindex="-1"])'
+    ].join(','))).filter(el=>el.offsetParent!==null || el === container);
+  }
+
+  function openDialog(){
+    lastFocused = document.activeElement;
+    if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open','');
+    const f = getFocusable(dlg);
+    if (f.length) f[0].focus();
+    document.addEventListener('keydown', onKeyDown, true);
+  }
+
+  function closeDialog(){
+    if (dlg.open) dlg.close();
+    document.removeEventListener('keydown', onKeyDown, true);
+    if (lastFocused && lastFocused.focus) lastFocused.focus();
+  }
+
+  function onKeyDown(e){
+    if (!dlg.open) return;
+    if (e.key === 'Escape'){
+      e.preventDefault();
+      closeDialog();
+      return;
+    }
+    if (e.key === 'Tab'){
+      const f = getFocusable(dlg);
+      if (!f.length) return;
+      const idx = f.indexOf(document.activeElement);
+      let next = idx;
+      if (e.shiftKey){
+        next = idx <= 0 ? f.length - 1 : idx - 1;
+      } else {
+        next = idx === f.length - 1 ? 0 : idx + 1;
+      }
+      f[next].focus();
+      e.preventDefault();
+    }
+  }
+
+  window.WSDialog = { open: openDialog, close: closeDialog };
+  dlg.addEventListener('close', ()=>{
+    document.removeEventListener('keydown', onKeyDown, true);
+    if (lastFocused && lastFocused.focus) lastFocused.focus();
+  });
+})();
+
+document.addEventListener('click', (e)=>{
+  const t = e.target;
+  if (t && t.matches('[data-open="worksheet"]')){ e.preventDefault(); if (window.WSDialog) window.WSDialog.open(); }
+  if (t && t.matches('[data-close="worksheet"]')){ e.preventDefault(); if (window.WSDialog) window.WSDialog.close(); }
+});
