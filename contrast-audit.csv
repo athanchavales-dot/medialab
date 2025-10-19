@@ -1,0 +1,6 @@
+Selector, Text Color, Background, Contrast Ratio, Requirement, Status
+.btn, #fff, #111, 18.88, >=4.5 small / >=3 large, PASS
+button, white, #ffffff, n/a, n/a, cannot resolve
+.btn.secondary, #111111, #eee, 16.28, >=4.5 small / >=3 large, PASS
+.btn-zip, #111111, #1e8e3e, 4.49, >=4.5 small / >=3 large, AA Large
+button.primary, #000, #ffcc00, 13.89, >=4.5 small / >=3 large, PASS
