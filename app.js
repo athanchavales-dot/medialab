@@ -1,3 +1,67 @@
+
+// --- SEN: Guided checklist embedded per stage ---
+async function addGuidance(cardEl, stageKey){
+  try{
+    const me = (window.currentUser ? await currentUser() : {email:'anon'});
+    const prefsKey = 'prefs:' + me.email;
+    const saved = (await idb.get('settings', prefsKey)) || { key:prefsKey, checks:{} };
+    const CHECKS = {
+      development: [
+        ['idea','I explained my idea'],
+        ['characters','I listed people or roles'],
+        ['story','I wrote the beginning, middle, end']
+      ],
+      preproduction: [
+        ['storyboard','I sketched or described 3 scenes'],
+        ['roles','We picked our team jobs'],
+        ['props','I listed props/equipment']
+      ],
+      production: [
+        ['tripod','Tripod and camera were safe'],
+        ['sound','We checked sound'],
+        ['scenes','We filmed our scenes']
+      ],
+      postproduction: [
+        ['order','Clips are in the right order'],
+        ['titles','I added titles or captions'],
+        ['reflect','I wrote or recorded my reflection']
+      ]
+    };
+    const TIPS = {
+      development: 'Say your idea in one sentence. Who is in your story? What happens first, next, last? You can record your voice.',
+      preproduction: 'Draw or describe at least 3 scenes. Pick team jobs. List props and places.',
+      production: 'Safety first. Check tripod. Do a sound test. Film one short scene at a time.',
+      postproduction: 'Put clips in order. Add a title. Add credits. Listen for clear sound.'
+    };
+    const list = CHECKS[stageKey]; if (!list) return;
+    const wrap = document.createElement('div'); wrap.className = 'guided card';
+    const h = document.createElement('h4'); h.textContent = 'Guided checklist'; wrap.appendChild(h);
+    const ul = document.createElement('ul'); ul.className = 'checklist';
+    list.forEach(([key,label])=>{
+      const li = document.createElement('li');
+      const lab = document.createElement('label');
+      const cb = document.createElement('input'); cb.type='checkbox'; cb.setAttribute('data-check', key);
+      const prefKey = 'chk:' + stageKey + ':' + key;
+      cb.checked = !!saved.checks[prefKey];
+      cb.addEventListener('change', async ()=>{
+        saved.checks[prefKey] = cb.checked; await idb.put('settings', saved);
+        if (window.renderProgress) window.renderProgress();
+      });
+      lab.appendChild(cb); lab.appendChild(document.createTextNode(' ' + label));
+      li.appendChild(lab); ul.appendChild(li);
+    });
+    const bar = document.createElement('div'); bar.className = 'step-actions';
+    const help = document.createElement('button'); help.className='btn secondary'; help.textContent='Help';
+    help.addEventListener('click', ()=> alert(TIPS[stageKey] || 'Keep it simple and clear. Ask your teacher if you get stuck.'));
+    bar.appendChild(help);
+
+    wrap.appendChild(ul); wrap.appendChild(bar);
+    // Insert guidance as the first block inside stage card
+    const first = cardEl.firstElementChild && cardEl.firstElementChild.nextSibling;
+    cardEl.insertBefore(wrap, cardEl.children[1]||null);
+  }catch(e){ console.error('addGuidance failed', e); }
+}
+
 // Oak Hill Media Lab v9 (PLUS + Submissions + Admin uploads)
 const $ = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
@@ -329,7 +393,7 @@ async function renderStages(proj){
       </details>
       <p class="muted"><strong>Worksheet status:</strong> <span id="st-status-${s.key}">${status}</span></p>
     `;
-    box.appendChild(div);
+    await addGuidance(div, s.key); box.appendChild(div);
   }
   box.querySelectorAll('textarea[data-notes]').forEach(t=>t.onchange=async()=>{ const p=await idb.get('projects', session.email); p.stages[t.dataset.notes].notes=t.value; await idb.put('projects', p); });
   box.querySelectorAll('button[data-complete]').forEach(btn=>btn.onclick=async()=>{ const key=btn.dataset.complete; const p=await idb.get('projects', session.email); p.stages[key].completed=!p.stages[key].completed; await idb.put('projects', p); renderStages(p); updateOverall(p); });
