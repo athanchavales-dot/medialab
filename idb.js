@@ -1,6 +1,6 @@
 (function(){
   const dbName = 'oakhill-media-lab';
-  const version = 8;
+  const version = 9;
   let db;
   window.idbReady = new Promise((resolve, reject)=>{
     const req = indexedDB.open(dbName, version);
@@ -12,6 +12,7 @@
       if (!db.objectStoreNames.contains('files')) db.createObjectStore('files', { keyPath:'id' });
       if (!db.objectStoreNames.contains('comments')) db.createObjectStore('comments', { keyPath:'id' });
       if (!db.objectStoreNames.contains('submissions')) db.createObjectStore('submissions', { keyPath:'id' });
+      if (!db.objectStoreNames.contains('assets')) db.createObjectStore('assets', { keyPath:'id' });
     };
     req.onsuccess = ()=>{ db = req.result; resolve(db); };
     req.onerror = ()=>reject(req.error);

@@ -1,5 +1,4 @@
-
-// Oak Hill Media Lab – Fixed Merged Build
+// Oak Hill Media Lab v9 (PLUS + Submissions + Admin uploads)
 const $ = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
 
@@ -36,6 +35,17 @@ const WORKSHEETS = {
     { id:'reflection', label:'Final reflection', type:'textarea', required:true }
   ]
 };
+
+// ---- Asset helpers (Admin stage resources) ----
+async function saveAsset(file){
+  const rec = { id: crypto.randomUUID(), name: file.name, type: file.type, blob: file };
+  await idb.put('assets', rec);
+  return rec.id;
+}
+async function getAssetURL(id){
+  const a = await idb.get('assets', id);
+  return a ? URL.createObjectURL(a.blob) : '';
+}
 
 let session = null;
 
@@ -113,11 +123,49 @@ async function renderUserTable(){
 }
 async function saveSettings(){
   await idb.put('settings',{ key:'uploads', pdf:$('#allowPDF').checked, images:$('#allowImages').checked, video:$('#allowVideo').checked });
-  await idb.put('settings',{ key:'resources', dev:$('#resDev').value.trim(), pre:$('#resPre').value.trim(), pro:$('#resPro').value.trim(), post:$('#resPost').value.trim() });
+  const existing = await idb.get('settings','resources')||{};
+  await idb.put('settings',{
+    key:'resources',
+    dev: $('#resDev').value.trim(),
+    pre: $('#resPre').value.trim(),
+    pro: $('#resPro').value.trim(),
+    post:$('#resPost').value.trim(),
+    devFileId: existing.devFileId||'',
+    devFileName: existing.devFileName||'',
+    preFileId: existing.preFileId||'',
+    preFileName: existing.preFileName||'',
+    proFileId: existing.proFileId||'',
+    proFileName: existing.proFileName||'',
+    postFileId: existing.postFileId||'',
+    postFileName: existing.postFileName||''
+  });
   alert('Settings saved.');
 }
 function showAdmin(){ show('admin'); renderUserTable(); loadSettings(); }
-async function loadSettings(){ const res=await idb.get('settings','resources')||{dev:'',pre:'',pro:'',post:''}; $('#resDev').value=res.dev||''; $('#resPre').value=res.pre||''; $('#resPro').value=res.pro||''; $('#resPost').value=res.post||''; }
+async function loadSettings(){
+  const res = await idb.get('settings','resources')||{dev:'',pre:'',pro:'',post:'', devFileId:'', preFileId:'', proFileId:'', postFileId:'', devFileName:'', preFileName:'', proFileName:'', postFileName:''};
+  $('#resDev').value=res.dev||''; $('#resPre').value=res.pre||''; $('#resPro').value=res.pro||''; $('#resPost').value=res.post||'';
+  if ($('#resDevInfo')) $('#resDevInfo').textContent = res.devFileId ? 'Uploaded: ' + (res.devFileName||'file') : '';
+  if ($('#resPreInfo')) $('#resPreInfo').textContent = res.preFileId ? 'Uploaded: ' + (res.preFileName||'file') : '';
+  if ($('#resProInfo')) $('#resProInfo').textContent = res.proFileId ? 'Uploaded: ' + (res.proFileName||'file') : '';
+  if ($('#resPostInfo')) $('#resPostInfo').textContent = res.postFileId ? 'Uploaded: ' + (res.postFileName||'file') : '';
+
+  ['Dev','Pre','Pro','Post'].forEach(stage=>{
+    const inp = document.getElementById('res'+stage+'File');
+    if (!inp) return;
+    inp.onchange = async ()=>{
+      const file = inp.files[0]; if(!file) return;
+      const id = await saveAsset(file);
+      const current = await idb.get('settings','resources')||{};
+      current.key='resources';
+      current[stage.toLowerCase()+'FileId'] = id;
+      current[stage.toLowerCase()+'FileName'] = file.name;
+      await idb.put('settings', current);
+      const info = document.getElementById('res'+stage+'Info'); if(info) info.textContent = 'Uploaded: ' + file.name;
+      alert(stage+' resource uploaded.');
+    };
+  });
+}
 
 // -------- Teacher --------
 async function showTeacher(){ show('teacher'); renderTeacherList(); }
@@ -158,13 +206,11 @@ async function openStudentModal(user, proj){
   }).join('');
   const dlg=$('#studentModal'); const content=$('#studentReviewContent'); content.innerHTML=''; content.appendChild(wrap);
 
-  // Bindings
   content.querySelectorAll('button[data-approve]').forEach(btn=>btn.onclick=async()=>{ const key=btn.dataset.approve; const p=await idb.get('projects', user.email); p.stages[key].completed=!p.stages[key].completed; await idb.put('projects', p); openStudentModal(user,p); renderTeacherList(); });
   content.querySelectorAll('button[data-return]').forEach(btn=>btn.onclick=async()=>{ const key=btn.dataset.return; const sub=await getSubmission(user.email, key); if(!sub) return alert('No submission to return.'); sub.status='returned'; await idb.put('submissions', sub); renderWorksheetInto(user.email,key,'ws-answers-'+key,'ws-status-'+key); });
   content.querySelectorAll('textarea[data-fb]').forEach(txt=>txt.onchange=async()=>{ const key=txt.dataset.fb; const p=await idb.get('projects', user.email); p.stages[key].feedback=txt.value; await idb.put('projects', p); });
   content.querySelectorAll('button[data-cmt]').forEach(btn=>btn.onclick=async()=>{ const key=btn.dataset.cmt; const input=$('#cmt-input-'+key); await addComment(user.email, key, 'teacher', session.name, input.value.trim()); input.value=''; renderCommentsInto(user.email, key, 'comments-'+key); });
 
-  // Load dynamic sections
   for (const s of STAGES){ renderWorksheetInto(user.email, s.key, 'ws-answers-'+s.key, 'ws-status-'+s.key); renderCommentsInto(user.email, s.key, 'comments-'+s.key); }
   dlg.showModal();
 }
@@ -179,7 +225,6 @@ function rubricHTML(stage, st){
   <div class="badges"><button class="secondary" data-calc="${stage.key}">Recalculate</button></div>`;
 }
 
-// rubric events
 document.addEventListener('change', async (e)=>{
   const sel=e.target.closest('select[data-rubric]'); if(!sel) return;
   const stageKey=sel.dataset.rubric, crit=sel.dataset.crit;
@@ -196,14 +241,12 @@ document.addEventListener('click', async (e)=>{
   $('#rubric-total-'+stageKey).textContent=String(total); $('#rubric-badge-'+stageKey).textContent=st.badge||'—';
 });
 
-// Comments
 async function addComment(email, stage, authorRole, author, text){ if(!text)return; const rec={id:crypto.randomUUID(), email, stage, authorRole, author, text, ts:Date.now()}; await idb.put('comments', rec); }
 async function renderCommentsInto(email, stage, elemId){
   const all=await idb.getAll('comments'); const list=all.filter(c=>c.email===email && c.stage===stage).sort((a,b)=>a.ts-b.ts);
   const box=document.getElementById(elemId); if(!box) return; box.innerHTML = list.map(c=>`<div class="card-row"><div><strong>${c.authorRole==='teacher'?'👩‍🏫':'🧑‍🎓'} ${escapeHTML(c.author)}</strong><br><small>${new Date(c.ts).toLocaleString()}</small></div><div>${escapeHTML(c.text)}</div></div>`).join('') || '<p class="muted">No comments yet.</p>';
 }
 
-// Teacher CSV
 async function exportCSV(){
   const users=(await idb.getAll('users')).filter(u=>u.role==='student');
   const rows=[['Name','Email',...STAGES.map(s=>s.name+' Complete'),...STAGES.map(s=>s.name+' Score'),...STAGES.map(s=>s.name+' Badge')]];
@@ -213,7 +256,18 @@ async function exportCSV(){
 
 // -------- Student --------
 async function showStudent(){ show('student'); const proj=await ensureProject(session.email); renderStages(proj); updateOverall(proj); }
-function stageResourceLink(sKey, settings){ const map={development:'dev',preproduction:'pre',production:'pro',postproduction:'post'}; const url=(settings?.[map[sKey]]||'').trim(); return url?`<a class="secondary" href="${url}" target="_blank" rel="noopener">Open worksheet/slides</a>`:''; }
+function stageResourceLink(sKey, settings){
+  const map={development:'dev',preproduction:'pre',production:'pro',postproduction:'post'};
+  const fileMap={development:'devFileId',preproduction:'preFileId',production:'proFileId',postproduction:'postFileId'};
+  const nameMap={development:'devFileName',preproduction:'preFileName',production:'proFileName',postproduction:'postFileName'};
+  const url=(settings?.[map[sKey]]||'').trim();
+  const fileId=settings?.[fileMap[sKey]]||'';
+  const label = settings?.[nameMap[sKey]] ? `Open ${settings[nameMap[sKey]]}` : 'Open worksheet/slides';
+  if (fileId){
+    return `<a class="secondary" data-asset-link="${fileId}" data-asset-label="${label}">${label}</a>` + (url?` <a class="secondary" href="${url}" target="_blank" rel="noopener">Open (URL)</a>`:'');
+  }
+  return url?`<a class="secondary" href="${url}" target="_blank" rel="noopener">${label}</a>`:'';
+}
 async function renderStages(proj){
   const box=$('#stagesContainer'); box.innerHTML=''; const res=await idb.get('settings','resources');
   for (const s of STAGES){
@@ -244,6 +298,7 @@ async function renderStages(proj){
   box.querySelectorAll('button[data-submit]').forEach(b=>b.onclick=()=>submitWorksheet(b.dataset.submit));
   box.querySelectorAll('button[data-stucmt]').forEach(btn=>btn.onclick=async()=>{ const key=btn.dataset.stucmt; const input=$('#cmt-'+key); await addComment(session.email, key, 'student', session.name, input.value.trim()); input.value=''; renderCommentsInto(session.email, key, 'cbox-'+key); });
   for (const s of STAGES){ await renderUploads(s.key); await renderPreviews(s.key); await renderCommentsInto(session.email, s.key, 'cbox-'+s.key); }
+  (async ()=>{ for (const el of document.querySelectorAll('[data-asset-link]')){ const id = el.getAttribute('data-asset-link'); const label = el.getAttribute('data-asset-label'); const href = await getAssetURL(id); if (href){ el.setAttribute('href', href); el.setAttribute('target','_blank'); el.setAttribute('rel','noopener'); el.textContent = label; } } })();
 }
 
 async function openWorksheet(stage){
@@ -267,7 +322,6 @@ async function submitWorksheet(stage){
 }
 function validateSubmission(sub){ const req=WORKSHEETS[sub.stage].filter(f=>f.required).map(f=>f.id); return req.every(k=>(sub.data?.[k]||'').trim().length>0); }
 
-// Uploads/previews
 async function renderUploads(stage){
   const mine=(await idb.getAll('files')).filter(f=>f.email===session.email && f.stage===stage);
   const box=document.getElementById('uploads-'+stage); box.innerHTML=mine.length?'<strong>My uploads:</strong>':'';
@@ -294,6 +348,18 @@ async function showGuardian(){
   const wrap=document.createElement('div'); wrap.className='card'; wrap.innerHTML=`<h3>Student: ${escapeHTML(user.name)} (${escapeHTML(user.email)})</h3><div class="progress" style="width:300px"><div style="width:${pct}%"></div></div><small>${pct}% complete</small>`;
   $('#guardianContent').innerHTML=''; $('#guardianContent').appendChild(wrap);
   for (const s of STAGES){ const st=proj.stages[s.key]; const sub=await getSubmission(email, s.key); const sec=document.createElement('div'); sec.className='card'; sec.innerHTML=`<h4>${s.emoji} ${s.name} ${st.completed?'✅':''} ${st.badge?`<span class='badge'>${st.badge}</span>`:''}</h4><p><strong>Worksheet:</strong> ${sub?escapeHTML(sub.status):'—'}</p><p><strong>Teacher feedback:</strong> ${escapeHTML(st.feedback||'—')}</p>`; $('#guardianContent').appendChild(sec); }
+}
+
+// Teacher modal worksheet renderer
+async function renderWorksheetInto(email, stage, elemId, statusId){
+  const sub = await getSubmission(email, stage);
+  const box = document.getElementById(elemId);
+  const status = document.getElementById(statusId);
+  if (status) status.textContent = sub ? (sub.status || 'draft') : 'Not started';
+  if (!box) return;
+  if (!sub){ box.innerHTML = '<p class="muted">No submission yet.</p>'; return; }
+  const fields = (WORKSHEETS[stage] || []);
+  box.innerHTML = fields.map(f=>`<p><strong>${f.label}:</strong><br>${escapeHTML(sub.data?.[f.id]||'—')}</p>`).join('');
 }
 
 // Certificate
@@ -323,17 +389,3 @@ function updateOverall(proj){ const pct=progressPercent(proj); $('#progressFill'
 function hash(str){ let h=0; for(let i=0;i<str.length;i++){ h=((h<<5)-h)+str.charCodeAt(i); h|=0; } return String(h); }
 function escapeHTML(s){ return String(s||'').replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]||c)); }
 function downloadFile(name, type, data){ const blob=new Blob([data],{type}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); }
-
-
-/* --- Safe fallback: renderWorksheetInto (exposed on window) --- */
-async function renderWorksheetInto(email, stage, elemId, statusId){
-  const sub = await getSubmission(email, stage);
-  const box = document.getElementById(elemId);
-  const status = document.getElementById(statusId);
-  if (status) status.textContent = sub ? (sub.status || 'draft') : 'Not started';
-  if (!box) return;
-  if (!sub){ box.innerHTML = '<p class="muted">No submission yet.</p>'; return; }
-  const fields = (WORKSHEETS[stage] || []);
-  box.innerHTML = fields.map(f=>`<p><strong>${f.label}:</strong><br>${escapeHTML(sub.data?.[f.id]||'—')}</p>`).join('');
-}
-window.renderWorksheetInto = renderWorksheetInto;

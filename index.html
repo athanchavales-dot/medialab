@@ -99,11 +99,23 @@
           <label><input type="checkbox" id="allowPDF" checked/> Allow PDF uploads</label>
           <label><input type="checkbox" id="allowImages" checked/> Allow images (PNG/JPG)</label>
           <label><input type="checkbox" id="allowVideo" checked/> Allow video (MP4)</label>
-          <h4>Stage Resources (links)</h4>
-          <label>Development <input id="resDev" placeholder="https://..."/></label>
-          <label>Pre-Production <input id="resPre" placeholder="https://..."/></label>
-          <label>Production <input id="resPro" placeholder="https://..."/></label>
-          <label>Post-Production <input id="resPost" placeholder="https://..."/></label>
+          <h4>Stage Resources (links + uploads)</h4>
+          <label>Development (URL) <input id="resDev" placeholder="https://...docx or .pptx or PDF"/></label>
+          <label>Development (Upload) <input id="resDevFile" type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.png,.jpg,.jpeg"/></label>
+          <div id="resDevInfo" class="muted"></div>
+
+          <label>Pre-Production (URL) <input id="resPre" placeholder="https://..."/></label>
+          <label>Pre-Production (Upload) <input id="resPreFile" type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.png,.jpg,.jpeg"/></label>
+          <div id="resPreInfo" class="muted"></div>
+
+          <label>Production (URL) <input id="resPro" placeholder="https://..."/></label>
+          <label>Production (Upload) <input id="resProFile" type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.png,.jpg,.jpeg,video/mp4"/></label>
+          <div id="resProInfo" class="muted"></div>
+
+          <label>Post-Production (URL) <input id="resPost" placeholder="https://..."/></label>
+          <label>Post-Production (Upload) <input id="resPostFile" type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.png,.jpg,.jpeg"/></label>
+          <div id="resPostInfo" class="muted"></div>
+
           <button id="saveSettings" class="secondary">Save Settings</button>
         </div>
       </div>
@@ -112,7 +124,6 @@
 
   <footer class="app-footer" role="contentinfo"><small>© Oak Hill School Media Lab</small></footer>
 
-  <!-- Worksheet Dialog -->
   <dialog id="worksheetDialog" aria-label="Worksheet">
     <form method="dialog">
       <h3 id="wsTitle">Worksheet</h3>
@@ -122,7 +133,7 @@
     </form>
   </dialog>
 
-  <script src="idb.js?v=8"></script>
-  <script src="app.js?v=8"></script>
+  <script src="idb.js?v=9"></script>
+  <script src="app.js?v=9"></script>
 </body>
 </html>
