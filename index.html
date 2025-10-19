@@ -45,9 +45,14 @@
   </div>
 </section>
 
-<section class="sen-steps" aria-label="Your steps">
+<section class="sen-steps" id="senSteps" role="tablist" aria-label="Assignment steps" aria-label="Your steps">
   <div class="step" data-step="plan">
-    <div class="step-head"><span class="bubble">1</span><h4>Plan</h4><span class="emoji">💡</span></div>
+    <div class="step-head"><button class="step-toggle" role="tab" aria-expanded="false">Plan</button><span class="emoji">💡</span>
+    <div class="stage-pane" id="stagePane-development">
+      <!-- Upload & history render here -->
+    </div>
+
+  </div>
     <p class="sen-help">Tell us your idea. You can write, draw, or record your voice.</p>
     <ul class="checklist" id="planList">
       <li><label><input type="checkbox" data-check="idea"> I explained my idea</label></li>
@@ -60,7 +65,12 @@
     </div>
   </div>
   <div class="step" data-step="prepare">
-    <div class="step-head"><span class="bubble">2</span><h4>Prepare</h4><span class="emoji">📋</span></div>
+    <div class="step-head"><button class="step-toggle" role="tab" aria-expanded="false">Prepare</button><span class="emoji">📋</span>
+    <div class="stage-pane" id="stagePane-preproduction">
+      <!-- Upload & history render here -->
+    </div>
+
+  </div>
     <p class="sen-help">Make a simple plan for scenes and jobs.</p>
     <ul class="checklist" id="prepList">
       <li><label><input type="checkbox" data-check="storyboard"> I sketched or described 3 scenes</label></li>
@@ -73,7 +83,12 @@
     </div>
   </div>
   <div class="step" data-step="film">
-    <div class="step-head"><span class="bubble">3</span><h4>Film</h4><span class="emoji">🎥</span></div>
+    <div class="step-head"><button class="step-toggle" role="tab" aria-expanded="false">Film</button><span class="emoji">🎥</span>
+    <div class="stage-pane" id="stagePane-production">
+      <!-- Upload & history render here -->
+    </div>
+
+  </div>
     <p class="sen-help">Set up safely and record your scenes.</p>
     <ul class="checklist" id="filmList">
       <li><label><input type="checkbox" data-check="tripod"> Tripod and camera were safe</label></li>
@@ -86,7 +101,12 @@
     </div>
   </div>
   <div class="step" data-step="edit">
-    <div class="step-head"><span class="bubble">4</span><h4>Edit</h4><span class="emoji">🎬</span></div>
+    <div class="step-head"><button class="step-toggle" role="tab" aria-expanded="false">Edit</button><span class="emoji">🎬</span>
+    <div class="stage-pane" id="stagePane-postproduction">
+      <!-- Upload & history render here -->
+    </div>
+
+  </div>
     <p class="sen-help">Put clips in order, add titles and sound.</p>
     <ul class="checklist" id="editList">
       <li><label><input type="checkbox" data-check="order"> Clips are in the right order</label></li>
@@ -120,9 +140,9 @@
   </div>
 </section>
 
-<section class="sen-steps" aria-label="Your steps">
+<section class="sen-steps" id="senSteps" role="tablist" aria-label="Assignment steps" aria-label="Your steps">
   <div class="step" data-step="plan">
-    <div class="step-head"><span class="bubble">1</span><h4>Plan</h4><span class="emoji">💡</span></div>
+    <div class="step-head"><button class="step-toggle" role="tab" aria-expanded="false">Plan</button><span class="emoji">💡</span></div>
     <p class="sen-help">Tell us your idea. You can write, draw, or record your voice.</p>
     <ul class="checklist" id="planList">
       <li><label><input type="checkbox" data-check="idea"> I explained my idea</label></li>
@@ -136,7 +156,7 @@
   </div>
 
   <div class="step" data-step="prepare">
-    <div class="step-head"><span class="bubble">2</span><h4>Prepare</h4><span class="emoji">📋</span></div>
+    <div class="step-head"><button class="step-toggle" role="tab" aria-expanded="false">Prepare</button><span class="emoji">📋</span></div>
     <p class="sen-help">Make a simple plan for scenes and jobs.</p>
     <ul class="checklist" id="prepList">
       <li><label><input type="checkbox" data-check="storyboard"> I sketched or described 3 scenes</label></li>
@@ -150,7 +170,7 @@
   </div>
 
   <div class="step" data-step="film">
-    <div class="step-head"><span class="bubble">3</span><h4>Film</h4><span class="emoji">🎥</span></div>
+    <div class="step-head"><button class="step-toggle" role="tab" aria-expanded="false">Film</button><span class="emoji">🎥</span></div>
     <p class="sen-help">Set up safely and record your scenes.</p>
     <ul class="checklist" id="filmList">
       <li><label><input type="checkbox" data-check="tripod"> Tripod and camera were safe</label></li>
@@ -164,7 +184,7 @@
   </div>
 
   <div class="step" data-step="edit">
-    <div class="step-head"><span class="bubble">4</span><h4>Edit</h4><span class="emoji">🎬</span></div>
+    <div class="step-head"><button class="step-toggle" role="tab" aria-expanded="false">Edit</button><span class="emoji">🎬</span></div>
     <p class="sen-help">Put clips in order, add titles and sound.</p>
     <ul class="checklist" id="editList">
       <li><label><input type="checkbox" data-check="order"> Clips are in the right order</label></li>
@@ -189,10 +209,6 @@
 </section>
 
 <!-- Student – Assignments hub -->
-<div class="grid" id="studentAssignments">
-  <!-- Stage cards are rendered by JS -->
-</div>
-
 <!-- Student – Notifications -->
 <div class="card" id="studentNotifications" aria-live="polite">
   <h3>Notifications</h3>

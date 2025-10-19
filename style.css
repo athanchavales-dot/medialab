@@ -192,3 +192,22 @@ button,.btn{min-height:44px}
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 dialog::backdrop{background:rgba(0,0,0,.45)}
 dialog[open]{border:none;border-radius:var(--radius);box-shadow:var(--shadow)}
+
+
+/* Distinctive colors per step */
+.step[data-step="plan"]{ border-left:6px solid #2563eb; }        /* blue */
+.step[data-step="prepare"]{ border-left:6px solid #059669; }     /* green */
+.step[data-step="film"]{ border-left:6px solid #d97706; }        /* amber */
+.step[data-step="edit"]{ border-left:6px solid #9333ea; }        /* purple */
+
+/* Accordion */
+.step-toggle{ all: unset; display:flex; align-items:center; gap:8px; font-weight:700; cursor:pointer; padding:6px 0; }
+.step[aria-expanded="true"] .stage-pane{ display:block; }
+.step .stage-pane{ display:none; padding-top:8px; }
+.step[aria-expanded="true"] .step-toggle::after{ content:"▲"; margin-left:auto; }
+.step[aria-expanded="false"] .step-toggle::after{ content:"▼"; margin-left:auto; }
+
+/* Inline upload/history pane */
+.stage-pane .upload-row{ display:flex; gap:8px; flex-wrap:wrap; margin:8px 0; }
+.stage-pane .history{ border-top:1px solid #eee; padding-top:8px; }
+.stage-pane .row{ align-items:center; }

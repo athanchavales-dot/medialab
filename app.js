@@ -771,131 +771,47 @@ function announce(msg){
   if (live){ live.textContent = ''; setTimeout(()=> live.textContent = msg, 30); }
 }
 
+
 async function renderStudentStages(){
-  const host = document.getElementById('studentAssignments'); if (!host) return;
-  host.innerHTML = '';
-  const stages = ['development','preproduction','production','postproduction'];
-  for (const st of stages){
-    const card = document.createElement('div'); card.className = 'stage-card';
-    card.innerHTML = `
-      <h4>${STAGE_LABELS[st]}</h4>
-      <div class="stage-actions">
-        <input type="file" id="file-${st}" aria-label="Upload file for ${STAGE_LABELS[st]}" multiple />
-        <input type="text" id="note-${st}" placeholder="Add a short note…" />
-        <button class="btn" data-submit="${st}">Submit</button>
-      </div>
-      <div class="meta"><span id="count-${st}">0</span> previous submissions</div>
-      <div class="list" id="mine-${st}"></div>`;
-    host.appendChild(card);
-    card.querySelector('[data-submit]').addEventListener('click', async () => {
-      const files = Array.from(card.querySelector(`#file-${st}`).files || []);
-      const note = card.querySelector(`#note-${st}`).value;
-      await saveSubmission(st, { note, files });
-      card.querySelector(`#note-${st}`).value = '';
-      await refreshStudentLists();
-    });
+  // Map steps to pane ids
+  var map = {
+    development: 'stagePane-development',
+    preproduction: 'stagePane-preproduction',
+    production: 'stagePane-production',
+    postproduction: 'stagePane-postproduction'
+  };
+  var stages = ['development','preproduction','production','postproduction'];
+  for (var i=0;i<stages.length;i++){
+    var st = stages[i];
+    var hostId = map[st];
+    var host = document.getElementById(hostId);
+    if (!host) continue;
+    // Build inline upload + history
+    host.innerHTML = '';
+    var up = document.createElement('div'); up.className = 'upload-row';
+    var file = document.createElement('input'); file.type='file'; file.id='file-'+st; file.multiple = true; file.setAttribute('aria-label','Upload file for ' + (STAGE_LABELS[st]||st));
+    var note = document.createElement('input'); note.type='text'; note.id='note-'+st; note.placeholder='Add a short note…';
+    var btn  = document.createElement('button'); btn.className='btn'; btn.setAttribute('data-submit', st); btn.textContent='Submit';
+    up.appendChild(file); up.appendChild(note); up.appendChild(btn);
+    host.appendChild(up);
+
+    var hist = document.createElement('div'); hist.className='history';
+    var list = document.createElement('div'); list.className='list'; list.id='mine-'+st;
+    var meta = document.createElement('div'); meta.className='meta'; meta.innerHTML = '<span id="count-'+st+'">0</span> previous submissions';
+    hist.appendChild(meta); hist.appendChild(list);
+    host.appendChild(hist);
+
+    (function(st, file, note){
+      btn.addEventListener('click', async function(){
+        var files = Array.prototype.slice.call(file.files||[]);
+        await saveSubmission(st, { note: note.value, files: files });
+        note.value=''; await refreshStudentLists();
+      });
+    })(st, file, note);
   }
   await refreshStudentLists();
 }
-async function refreshStudentLists(){
-  for (const st of ['development','preproduction','production','postproduction']){
-    const mineEl = document.getElementById('mine-'+st); if (!mineEl) continue;
-    const items = await listMySubmissions(st);
-    const countEl = document.getElementById('count-'+st); if (countEl) countEl.textContent = items.length;
-    mineEl.innerHTML = items.map(s => `
-      <div class="row">
-        <div>
-          <div><strong>${s.stageName}</strong> <span class="status-pill ${s.status}">${s.status.replace('_',' ')}</span></div>
-          <div class="meta">${fmtDate(s.updatedAt)} • ${s.assets.length} file(s)</div>
-        </div>
-        <button class="btn" data-open-thread="${s.id}">Open thread</button>
-      </div>`).join('');
-  }
-  const notes = await pullNotices();
-  const ul = document.getElementById('studentNotices');
-  if (ul) ul.innerHTML = notes.map(n=>`<li>${n.message} <span class="meta">(${fmtDate(n.createdAt)})</span></li>`).join('');
-}
-async function renderTeacherSubmissions(){
-  const wrap = document.getElementById('teacherSubmissions'); if (!wrap) return;
-  const status = document.getElementById('subFilter')?.value || 'all';
-  const stage = document.getElementById('subStageFilter')?.value || 'all';
-  const items = await listAllSubmissions({ status, stage });
-  wrap.innerHTML = items.map(s => `
-    <div class="row">
-      <div>
-        <div><strong>${s.ownerName}</strong> • ${s.stageName} <span class="status-pill ${s.status}">${s.status.replace('_',' ')}</span></div>
-        <div class="meta">${fmtDate(s.updatedAt)} • ${s.assets.length} file(s)</div>
-      </div>
-      <div class="toolbar">
-        <button class="btn" data-review="${s.id}">Review</button>
-        <button class="btn secondary" data-open-thread="${s.id}">Open thread</button>
-      </div>
-    </div>`).join('');
-}
-async function openThread(subId){
-  const thread = document.getElementById('fbThread'); if (!thread) return;
-  thread.innerHTML = '<p class="muted">Loading…</p>';
-  const items = await getComments(subId);
-  const html = items.map(m=>`<div class="msg"><span class="by">${m.byName}</span><span class="meta">${fmtDate(m.createdAt)}</span><div>${m.text}</div></div>`).join('');
-  thread.innerHTML = html || '<p class="muted">No messages yet.</p>';
-}
-let FB_CTX = { subId:null, media:null, recording:false, audioId:null };
-async function openFeedback(subId){
-  FB_CTX = { subId, media:null, recording:false, audioId:null };
-  const dlg = document.getElementById('feedbackDialog');
-  const sub = await idb.get('submissions', subId);
-  const owner = await getUser(sub.owner);
-  document.getElementById('fbTitle').textContent = `Review: ${owner.name || owner.email} — ${sub.stageName}`;
-  document.getElementById('fbMeta').textContent = `${sub.assets.length} file(s) • ${fmtDate(sub.createdAt)}`;
-  const crits = DEFAULT_RUBRIC[sub.stage] || DEFAULT_RUBRIC.development;
-  const rb = document.getElementById('fbRubric');
-  rb.innerHTML = crits.map((c,i)=>`
-    <div class="rubric-row">
-      <div>${c}</div>
-      <div class="rubric-pick">
-        <label><input type="radio" name="r${i}" value="💪 Excellent"> 💪</label>
-        <label><input type="radio" name="r${i}" value="👍 Good"> 👍</label>
-        <label><input type="radio" name="r${i}" value="🔄 Needs work"> 🔄</label>
-      </div>
-    </div>`).join('');
-  document.getElementById('fbText').value = '';
-  document.getElementById('fbStatus').value = 'reviewed';
-  const aud = document.getElementById('fbAudioPreview'); aud.src=''; aud.classList.add('hidden');
-  await openThread(subId);
-  if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open','');
-  setTimeout(()=> document.getElementById('fbText')?.focus(), 50);
-}
-function closeFeedback(){ const dlg = document.getElementById('feedbackDialog'); if (dlg.open) dlg.close(); }
-async function toggleRecord(){
-  const btn = document.getElementById('fbRecordBtn'); const status = document.getElementById('fbRecordStatus'); const preview = document.getElementById('fbAudioPreview');
-  if (!FB_CTX.media){
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({audio:true});
-      const rec = new MediaRecorder(stream);
-      const chunks = [];
-      rec.ondataavailable = e=> chunks.push(e.data);
-      rec.onstop = async ()=>{
-        const blob = new Blob(chunks, { type:'audio/webm' });
-        FB_CTX.audioId = await storeAudioBlob(blob);
-        const url = await getAssetUrl(FB_CTX.audioId);
-        preview.src = url; preview.classList.remove('hidden');
-        status.textContent = 'Recorded';
-        btn.setAttribute('aria-pressed','false');
-        FB_CTX.recording = false;
-      };
-      FB_CTX.media = { stream, rec };
-    } catch(err){ alert('Microphone not available.'); return; }
-  }
-  if (!FB_CTX.recording){
-    FB_CTX.media.rec.start();
-    btn.setAttribute('aria-pressed','true'); FB_CTX.recording = true;
-    status.textContent = 'Recording… (press again to stop)';
-  } else {
-    FB_CTX.media.rec.stop();
-    FB_CTX.media.stream.getTracks().forEach(t=>t.stop());
-    status.textContent = 'Saving…';
-  }
-}
+
 async function handleSaveFeedback(){
   const subId = FB_CTX.subId;
   const crits = Array.from(document.getElementById('fbRubric').querySelectorAll('.rubric-row'));
@@ -954,7 +870,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if(tLarge) tLarge.addEventListener('change', async function(e){ saved.tLarge=!!e.target.checked; await save(); apply(); });
       if(tCompact) tCompact.addEventListener('change', async function(e){ saved.tCompact=!!e.target.checked; await save(); apply(); });
       Array.prototype.forEach.call(document.querySelectorAll('.checklist input[type=checkbox]'), function(cb){ var stepEl=cb.closest('.step'); var step=stepEl&&stepEl.getAttribute('data-step')?stepEl.getAttribute('data-step'):'step'; var item=cb.getAttribute('data-check')||'item'; var ck='chk:'+step+':'+item; cb.checked=!!saved.checks[ck]; cb.addEventListener('change', async function(){ saved.checks[ck]=!!cb.checked; await save(); renderProgress(saved); }); });
-      Array.prototype.forEach.call(document.querySelectorAll('[data-open-stage]'), function(btn){ btn.addEventListener('click', function(){ var a=document.getElementById('studentAssignments'); if(a&&a.scrollIntoView) a.scrollIntoView({behavior:'smooth',block:'start'}); }); });
+      Array.prototype.forEach.call(document.querySelectorAll('[data-open-stage]'), function(btn){ btn.addEventListener('click', function(){ var a=document.getElementById('senSteps'); if(a&&a.scrollIntoView) a.scrollIntoView({behavior:'smooth',block:'start'}); }); });
       var tips={plan:'Say your idea in one sentence. Who is in your story? What happens first, next, last? You can record your voice.',prepare:'Draw or describe at least 3 scenes. Pick team jobs. List props and places.',film:'Safety first. Check tripod. Do a sound test. Film one short scene at a time.',edit:'Put clips in order. Add a title. Add credits. Listen for clear sound.'};
       Array.prototype.forEach.call(document.querySelectorAll('[data-help]'), function(btn){ btn.addEventListener('click', function(){ var k=btn.getAttribute('data-help'); alert(tips[k]||'Keep it simple and clear. Ask your teacher if you get stuck.'); }); });
       apply();
@@ -964,3 +880,28 @@ document.addEventListener('DOMContentLoaded', () => {
     })();
   });
 })();
+
+function initAccordionSteps(){
+  var steps = Array.prototype.slice.call(document.querySelectorAll('.step'));
+  steps.forEach(function(step, idx){
+    var btn = step.querySelector('.step-toggle');
+    if (!btn) return;
+    btn.setAttribute('aria-expanded','false');
+    step.setAttribute('aria-expanded','false');
+    btn.addEventListener('click', function(){
+      var expanded = step.getAttribute('aria-expanded') === 'true';
+      // collapse all
+      steps.forEach(function(s){ s.setAttribute('aria-expanded','false'); var b=s.querySelector('.step-toggle'); if(b) b.setAttribute('aria-expanded','false'); });
+      // expand current if it was collapsed
+      if (!expanded){
+        step.setAttribute('aria-expanded','true');
+        btn.setAttribute('aria-expanded','true');
+        // focus into the pane for keyboard users
+        var pane = step.querySelector('.stage-pane'); if (pane) pane.setAttribute('tabindex','-1'), pane.focus();
+      }
+    });
+    // Expand the first step by default
+    if (idx===0){ step.setAttribute('aria-expanded','true'); btn.setAttribute('aria-expanded','true'); }
+  });
+}
+document.addEventListener('DOMContentLoaded', function(){ initAccordionSteps(); });
