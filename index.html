@@ -59,6 +59,81 @@
       <button class="btn secondary" data-help="plan">Help</button>
     </div>
   </div>
+  <div class="step" data-step="prepare">
+    <div class="step-head"><span class="bubble">2</span><h4>Prepare</h4><span class="emoji">📋</span></div>
+    <p class="sen-help">Make a simple plan for scenes and jobs.</p>
+    <ul class="checklist" id="prepList">
+      <li><label><input type="checkbox" data-check="storyboard"> I sketched or described 3 scenes</label></li>
+      <li><label><input type="checkbox" data-check="roles"> We picked our team jobs</label></li>
+      <li><label><input type="checkbox" data-check="props"> I listed props/equipment</label></li>
+    </ul>
+    <div class="step-actions">
+      <button class="btn big" data-open-stage="preproduction">Open Preparation</button>
+      <button class="btn secondary" data-help="prepare">Help</button>
+    </div>
+  </div>
+  <div class="step" data-step="film">
+    <div class="step-head"><span class="bubble">3</span><h4>Film</h4><span class="emoji">🎥</span></div>
+    <p class="sen-help">Set up safely and record your scenes.</p>
+    <ul class="checklist" id="filmList">
+      <li><label><input type="checkbox" data-check="tripod"> Tripod and camera were safe</label></li>
+      <li><label><input type="checkbox" data-check="sound"> We checked sound</label></li>
+      <li><label><input type="checkbox" data-check="scenes"> We filmed our scenes</label></li>
+    </ul>
+    <div class="step-actions">
+      <button class="btn big" data-open-stage="production">Open Filming</button>
+      <button class="btn secondary" data-help="film">Help</button>
+    </div>
+  </div>
+  <div class="step" data-step="edit">
+    <div class="step-head"><span class="bubble">4</span><h4>Edit</h4><span class="emoji">🎬</span></div>
+    <p class="sen-help">Put clips in order, add titles and sound.</p>
+    <ul class="checklist" id="editList">
+      <li><label><input type="checkbox" data-check="order"> Clips are in the right order</label></li>
+      <li><label><input type="checkbox" data-check="titles"> I added titles or captions</label></li>
+      <li><label><input type="checkbox" data-check="reflect"> I wrote or recorded my reflection</label></li>
+    </ul>
+    <div class="step-actions">
+      <button class="btn big" data-open-stage="postproduction">Open Editing</button>
+      <button class="btn secondary" data-help="edit">Help</button>
+    </div>
+  </div>
+</section>
+
+<section class="sen-progress">
+  <div class="card">
+    <h3>My progress</h3>
+    <div class="progress-bar" aria-label="Overall progress">
+      <div class="progress-fill" id="overallProgress" style="width:0%"></div>
+    </div>
+    <p class="muted" id="progressLabel">0% done • Keep going!</p>
+  </div>
+</section>
+
+<!-- SEN-Friendly Student Dashboard -->
+<section class="sen-hero">
+  <h3>Start here</h3>
+  <p class="sen-intro">Follow these simple steps. You can use text, pictures, or a short voice note. Ask for help anytime.</p>
+  <div class="sen-toggles">
+    <label class="switch"><input type="checkbox" id="guidedMode"><span>Guided Mode</span></label>
+    <label class="switch"><input type="checkbox" id="largeText"><span>Large Text</span></label>
+  </div>
+</section>
+
+<section class="sen-steps" aria-label="Your steps">
+  <div class="step" data-step="plan">
+    <div class="step-head"><span class="bubble">1</span><h4>Plan</h4><span class="emoji">💡</span></div>
+    <p class="sen-help">Tell us your idea. You can write, draw, or record your voice.</p>
+    <ul class="checklist" id="planList">
+      <li><label><input type="checkbox" data-check="idea"> I explained my idea</label></li>
+      <li><label><input type="checkbox" data-check="characters"> I listed people or roles</label></li>
+      <li><label><input type="checkbox" data-check="story"> I wrote the beginning, middle, end</label></li>
+    </ul>
+    <div class="step-actions">
+      <button class="btn big" data-open-stage="development">Open Planning</button>
+      <button class="btn secondary" data-help="plan">Help</button>
+    </div>
+  </div>
 
   <div class="step" data-step="prepare">
     <div class="step-head"><span class="bubble">2</span><h4>Prepare</h4><span class="emoji">📋</span></div>

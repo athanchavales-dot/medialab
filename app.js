@@ -935,129 +935,32 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-// ---------- SEN Guided Mode & Progress ----------
+
+
+
+
+// ---------- SEN Guided Mode & Progress (ASCII-safe) ----------
 (function(){
-  document.addEventListener('DOMContentLoaded', async () => {
-    const guidedToggle = document.getElementById('guidedMode');
-    const largeToggle = document.getElementById('largeText');
-    const tLarge = document.getElementById('tLargeText');
-    const tCompact = document.getElementById('tCompact');
-
-    // Restore toggles from settings
-    const me = await (window.currentUser ? currentUser() : Promise.resolve({email:'anon'}));
-    const prefsKey = 'prefs:' + me.email;
-    const saved = (await idb.get('settings', prefsKey)) || { key: prefsKey, guided:true, largeText:false, tLarge:false, tCompact:false, checks:{} };
-
-    function applyPrefs(){
-      document.body.classList.toggle('large-text', !!saved.largeText || !!saved.tLarge);
-      document.body.classList.toggle('t-compact', !!saved.tCompact);
-      if (guidedToggle) guidedToggle.checked = !!saved.guided;
-      if (largeToggle) largeToggle.checked = !!saved.largeText;
-      if (tLarge) tLarge.checked = !!saved.tLarge;
-      if (tCompact) tCompact.checked = !!saved.tCompact;
-      renderProgress();
-      renderQueues();
-    }
-
-    async function savePrefs(){ await idb.put('settings', saved); }
-
-    guidedToggle?.addEventListener('change', async (e)=>{ saved.guided = e.target.checked; await savePrefs(); });
-    largeToggle?.addEventListener('change', async (e)=>{ saved.largeText = e.target.checked; await savePrefs(); applyPrefs(); });
-    tLarge?.addEventListener('change', async (e)=>{ saved.tLarge = e.target.checked; await savePrefs(); applyPrefs(); });
-    tCompact?.addEventListener('change', async (e)=>{ saved.tCompact = e.target.checked; await savePrefs(); applyPrefs(); });
-
-    // Checklist persistence
-    document.querySelectorAll('.checklist input[type=checkbox]').forEach(cb=>{
-      const key = 'chk:' + cb.closest('.step')?.dataset.step + ':' + (cb.getAttribute('data-check')||'item');
-      cb.checked = !!saved.checks[key];
-      cb.addEventListener('change', async ()=>{
-        saved.checks[key] = cb.checked;
-        await savePrefs();
-        renderProgress();
-      });
-    });
-
-    // Open stage buttons
-    document.querySelectorAll('[data-open-stage]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        const stage = btn.getAttribute('data-open-stage');
-        // Smooth scroll to student assignments block if exists; otherwise noop
-        const assignBlock = document.getElementById('studentAssignments');
-        if (assignBlock) assignBlock.scrollIntoView({behavior:'smooth', block:'start'});
-        // Optionally pre-focus the right stage card's submit controls
-      });
-    });
-
-    // Help buttons (simple tips)
-    const TIPS = {
-      plan: 'Say your idea in one sentence. Who is in your story? What happens first, next, last? You can record your voice.',
-      prepare: 'Draw or describe at least 3 scenes. Pick team jobs. List props and places.',
-      film: 'Safety first. Check tripod. Do a sound test. Film one short scene at a time.',
-      edit: 'Put clips in order. Add a title. Add credits. Listen for clear sound.'
-    };
-    document.querySelectorAll('[data-help]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        const key = btn.getAttribute('data-help');
-        alert(TIPS[key] || 'Keep it simple and clear. Ask your teacher if you get stuck.');
-      });
-    });
-
-    // Render initial UI
-    applyPrefs();
-
-    // Progress is based on checklists + submission statuses
-    async function renderProgress(){
-      const fill = document.getElementById('overallProgress');
-      const label = document.getElementById('progressLabel');
-      if (!fill || !label) return;
-      const checks = Object.values(saved.checks||{}).filter(Boolean).length;
-      const totalChecks = document.querySelectorAll('.checklist input[type=checkbox]').length || 1;
-      let pct = Math.round((checks/totalChecks)*70); // checklists worth 70% of progress
-
-      // plus submissions status weight
-      const mine = await (window.listMySubmissions ? Promise.all(['development','preproduction','production','postproduction'].map(listMySubmissions)) : Promise.resolve([[],[],[],[]]));
-      const flat = mine.flat();
-      const reviewed = flat.filter(x=>x.status==='reviewed').length;
-      const needs = flat.filter(x=>x.status==='needs_changes').length;
-      const bonus = Math.min(30, reviewed*10 - needs*5);
-      pct = Math.max(0, Math.min(100, pct + bonus));
-
-      fill.style.width = pct + '%';
-      label.textContent = pct + '% done • ' + (pct<40 ? 'Great start!' : pct<80 ? 'Keep going!' : 'Almost there!');
-    }
-
-    // Teacher queues
-    async function renderQueues(){
-      const qP = document.getElementById('qPending');
-      const qC = document.getElementById('qConversation');
-      const qR = document.getElementById('qReviewed');
-      if (!qP || !qC || !qR || !window.listAllSubmissions) return;
-      const all = await listAllSubmissions();
-      const pending = all.filter(s=>s.status==='pending');
-      const conv = all.filter(s=>s.status==='needs_changes');
-      const reviewed = all.filter(s=>s.status==='reviewed');
-      const row = s => \`
-        <div class="row">
-          <div>
-            <div><strong>\${s.ownerName}</strong> • \${s.stageName}</div>
-            <div class="meta">\${new Date(s.updatedAt).toLocaleString()} • \${s.assets.length} file(s)</div>
-          </div>
-          <div class="toolbar">
-            <button class="btn" data-review="\${s.id}">Review</button>
-            <button class="btn secondary" data-open-thread="\${s.id}">Thread</button>
-          </div>
-        </div>\`;
-      qP.innerHTML = pending.map(row).join('') || '<p class="muted">No items</p>';
-      qC.innerHTML = conv.map(row).join('') || '<p class="muted">No items</p>';
-      qR.innerHTML = reviewed.map(row).join('') || '<p class="muted">No items</p>';
-    }
-
-    // Re-render queues on filter change or feedback save (listeners added in other modules too)
-    document.getElementById('subFilter')?.addEventListener('change', renderQueues);
-    document.getElementById('subStageFilter')?.addEventListener('change', renderQueues);
-
-    // Expose refreshers globally
-    window.renderQueues = renderQueues;
-    window.renderProgress = renderProgress;
+  function make(el, cls, text){ var n=document.createElement(el); if(cls) n.className=cls; if(text!=null) n.textContent=text; return n; }
+  function rowNode(sub){ var row=make('div','row'); var left=make('div',''); var title=make('div',''); var strong=make('strong','', sub.ownerName||sub.owner); title.appendChild(strong); title.appendChild(document.createTextNode(' • '+(sub.stageName||sub.stage))); left.appendChild(title); var meta=make('div','meta', new Date(sub.updatedAt||Date.now()).toLocaleString()+' • '+((sub.assets&&sub.assets.length)||0)+' file(s)'); var right=make('div','toolbar'); var review=make('button','btn','Review'); review.setAttribute('data-review', sub.id); var thread=make('button','btn secondary','Thread'); thread.setAttribute('data-open-thread', sub.id); right.appendChild(review); right.appendChild(thread); row.appendChild(left); row.appendChild(right); left.appendChild(meta); return row; }
+  document.addEventListener('DOMContentLoaded', function(){
+    (async function init(){
+      var guided=document.getElementById('guidedMode'); var large=document.getElementById('largeText'); var tLarge=document.getElementById('tLargeText'); var tCompact=document.getElementById('tCompact');
+      var me=(window.currentUser? await currentUser(): {email:'anon'}); var key='prefs:'+me.email; var saved=(await idb.get('settings', key))||{key:key,guided:true,largeText:false,tLarge:false,tCompact:false,checks:{}};
+      function apply(){ document.body.classList.toggle('large-text', !!saved.largeText||!!saved.tLarge); document.body.classList.toggle('t-compact', !!saved.tCompact); if(guided) guided.checked=!!saved.guided; if(large) large.checked=!!saved.largeText; if(tLarge) tLarge.checked=!!saved.tLarge; if(tCompact) tCompact.checked=!!saved.tCompact; renderProgress(saved); window.renderQueues&&window.renderQueues(); }
+      async function save(){ await idb.put('settings', saved); }
+      if(guided) guided.addEventListener('change', async function(e){ saved.guided=!!e.target.checked; await save(); });
+      if(large)  large.addEventListener('change',  async function(e){ saved.largeText=!!e.target.checked; await save(); apply(); });
+      if(tLarge) tLarge.addEventListener('change', async function(e){ saved.tLarge=!!e.target.checked; await save(); apply(); });
+      if(tCompact) tCompact.addEventListener('change', async function(e){ saved.tCompact=!!e.target.checked; await save(); apply(); });
+      Array.prototype.forEach.call(document.querySelectorAll('.checklist input[type=checkbox]'), function(cb){ var stepEl=cb.closest('.step'); var step=stepEl&&stepEl.getAttribute('data-step')?stepEl.getAttribute('data-step'):'step'; var item=cb.getAttribute('data-check')||'item'; var ck='chk:'+step+':'+item; cb.checked=!!saved.checks[ck]; cb.addEventListener('change', async function(){ saved.checks[ck]=!!cb.checked; await save(); renderProgress(saved); }); });
+      Array.prototype.forEach.call(document.querySelectorAll('[data-open-stage]'), function(btn){ btn.addEventListener('click', function(){ var a=document.getElementById('studentAssignments'); if(a&&a.scrollIntoView) a.scrollIntoView({behavior:'smooth',block:'start'}); }); });
+      var tips={plan:'Say your idea in one sentence. Who is in your story? What happens first, next, last? You can record your voice.',prepare:'Draw or describe at least 3 scenes. Pick team jobs. List props and places.',film:'Safety first. Check tripod. Do a sound test. Film one short scene at a time.',edit:'Put clips in order. Add a title. Add credits. Listen for clear sound.'};
+      Array.prototype.forEach.call(document.querySelectorAll('[data-help]'), function(btn){ btn.addEventListener('click', function(){ var k=btn.getAttribute('data-help'); alert(tips[k]||'Keep it simple and clear. Ask your teacher if you get stuck.'); }); });
+      apply();
+      async function renderProgress(savedPrefs){ var fill=document.getElementById('overallProgress'); var label=document.getElementById('progressLabel'); if(!fill||!label) return; var total=document.querySelectorAll('.checklist input[type=checkbox]').length||1; var checked=0; for(var k in (savedPrefs.checks||{})){ if(savedPrefs.checks[k]) checked++; } var pct=Math.round((checked/total)*70); var lists=window.listMySubmissions? await Promise.all(['development','preproduction','production','postproduction'].map(listMySubmissions)):[[],[],[],[]]; var flat=[]; lists.forEach(function(a){ flat=flat.concat(a); }); var reviewed=flat.filter(function(x){return x.status==='reviewed';}).length; var needs=flat.filter(function(x){return x.status==='needs_changes';}).length; var bonus=Math.min(30, reviewed*10 - needs*5); pct=Math.max(0, Math.min(100, pct+bonus)); fill.style.width=String(pct)+'%'; label.textContent=String(pct)+'% done • ' + (pct<40?'Great start!':(pct<80?'Keep going!':'Almost there!')); }
+      window.renderQueues = window.renderQueues || function(){};
+      window.renderProgress = function(){ renderProgress(saved); };
+    })();
   });
 })();
