@@ -943,7 +943,7 @@ async function handleSaveFeedback(){
   const status = document.getElementById('fbStatus').value;
   await saveFeedback(subId, { rubricMap: rubric, text, status, audioAssetId: FB_CTX.audioId });
   await openThread(subId);
-  if (document.getElementById('subFilter')) renderTeacherSubmissions();
+  if (document.getElementById('subFilter')) if (typeof renderTeacherSubmissions==='function') renderTeacherSubmissions();
   if (typeof refreshStudentLists==='function') await refreshStudentLists();
   announce('Feedback saved.');
 }
@@ -956,7 +956,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderStudentStages(); refreshStudentLists();
   document.getElementById('subFilter')?.addEventListener('change', renderTeacherSubmissions);
   document.getElementById('subStageFilter')?.addEventListener('change', renderTeacherSubmissions);
-  renderTeacherSubmissions();
+  if (typeof renderTeacherSubmissions==='function') renderTeacherSubmissions();
   document.getElementById('fbRecordBtn')?.addEventListener('click', toggleRecord);
   document.getElementById('fbSave')?.addEventListener('click', handleSaveFeedback);
   document.getElementById('fbSendReply')?.addEventListener('click', async ()=>{
@@ -1097,3 +1097,39 @@ document.addEventListener('DOMContentLoaded', function(){ initAccordionSteps(); 
     }
   });
 })();
+
+
+// --- Safe fallback: Teacher submissions list ---
+async function renderTeacherSubmissions(){
+  try{
+    var wrap = document.getElementById('teacherSubmissions'); 
+    if (!wrap) return; // not on teacher view
+    var statusSel = document.getElementById('subFilter');
+    var stageSel  = document.getElementById('subStageFilter');
+    var status = statusSel ? statusSel.value : 'all';
+    var stage  = stageSel ? stageSel.value : 'all';
+    if (typeof listAllSubmissions !== 'function'){ wrap.innerHTML = '<p class="muted">Loading…</p>'; return; }
+    var items = await listAllSubmissions({ status: status, stage: stage });
+    wrap.innerHTML = '';
+    if (!items.length){ wrap.innerHTML = '<p class="muted">No submissions yet.</p>'; return; }
+    items.forEach(function(s){
+      var row = document.createElement('div'); row.className='row';
+      var left = document.createElement('div');
+      var top = document.createElement('div');
+      var strong = document.createElement('strong'); strong.textContent = s.ownerName || s.owner;
+      top.appendChild(strong);
+      top.appendChild(document.createTextNode(' • ' + (s.stageName || s.stage)));
+      var meta = document.createElement('div'); meta.className='meta';
+      meta.textContent = (new Date(s.updatedAt)).toLocaleString() + ' • ' + (s.assets ? s.assets.length : 0) + ' file(s)';
+      left.appendChild(top); left.appendChild(meta);
+      var bar = document.createElement('div'); bar.className='toolbar';
+      var review = document.createElement('button'); review.className='btn'; review.setAttribute('data-review', s.id); review.textContent='Review';
+      var thread = document.createElement('button'); thread.className='btn secondary'; thread.setAttribute('data-open-thread', s.id); thread.textContent='Thread';
+      bar.appendChild(review); bar.appendChild(thread);
+      row.appendChild(left); row.appendChild(bar);
+      wrap.appendChild(row);
+    });
+  }catch(e){
+    console.warn('renderTeacherSubmissions failed:', e);
+  }
+}
