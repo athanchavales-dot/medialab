@@ -1,5 +1,5 @@
-const CACHE='oakhill-media-lab-v9';
-const ASSETS=['./','./index.html','./style.css','./app.js?v=9','./idb.js?v=9','./assets/logo.png','./manifest.json'];
+const CACHE='oakhill-media-lab-v10';
+const ASSETS=['./','./index.html','./style.css','./app.js?v=10','./idb.js?v=10','./assets/logo.png','./manifest.json'];
 self.addEventListener('install',e=>{
   e.waitUntil(caches.open(CACHE).then(async c=>{ try{ await c.addAll(ASSETS); }catch(e){} }).then(()=>self.skipWaiting()));
 });

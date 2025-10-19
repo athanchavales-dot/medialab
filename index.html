@@ -99,27 +99,46 @@
           <label><input type="checkbox" id="allowPDF" checked/> Allow PDF uploads</label>
           <label><input type="checkbox" id="allowImages" checked/> Allow images (PNG/JPG)</label>
           <label><input type="checkbox" id="allowVideo" checked/> Allow video (MP4)</label>
-          <h4>Stage Resources (links + uploads)</h4>
-          <label>Development (URL) <input id="resDev" placeholder="https://...docx or .pptx or PDF"/></label>
-          <label>Development (Upload) <input id="resDevFile" type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.png,.jpg,.jpeg"/></label>
-          <div id="resDevInfo" class="muted"></div>
+          
+<h4>Stage Resources (URLs + separate uploads)</h4>
 
-          <label>Pre-Production (URL) <input id="resPre" placeholder="https://..."/></label>
-          <label>Pre-Production (Upload) <input id="resPreFile" type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.png,.jpg,.jpeg"/></label>
-          <div id="resPreInfo" class="muted"></div>
+<!-- Development -->
+<h5>Development</h5>
+<label>Video URL <input id="devVideoUrl" placeholder="https://youtube.com/... or direct MP4 URL"/></label>
+<label>Word (Upload) <input id="devWordFile" type="file" accept=".doc,.docx"/></label><div id="devWordInfo" class="muted"></div>
+<label>PDF (Upload) <input id="devPdfFile" type="file" accept=".pdf"/></label><div id="devPdfInfo" class="muted"></div>
+<label>PPTX (Upload) <input id="devPptxFile" type="file" accept=".ppt,.pptx"/></label><div id="devPptxInfo" class="muted"></div>
+<label>Extra Link (optional) <input id="resDev" placeholder="https://..."/></label>
 
-          <label>Production (URL) <input id="resPro" placeholder="https://..."/></label>
-          <label>Production (Upload) <input id="resProFile" type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.png,.jpg,.jpeg,video/mp4"/></label>
-          <div id="resProInfo" class="muted"></div>
+<!-- Pre-Production -->
+<h5>Pre-Production</h5>
+<label>Video URL <input id="preVideoUrl" placeholder="https://youtube.com/... or direct MP4 URL"/></label>
+<label>Word (Upload) <input id="preWordFile" type="file" accept=".doc,.docx"/></label><div id="preWordInfo" class="muted"></div>
+<label>PDF (Upload) <input id="prePdfFile" type="file" accept=".pdf"/></label><div id="prePdfInfo" class="muted"></div>
+<label>PPTX (Upload) <input id="prePptxFile" type="file" accept=".ppt,.pptx"/></label><div id="prePptxInfo" class="muted"></div>
+<label>Extra Link (optional) <input id="resPre" placeholder="https://..."/></label>
 
-          <label>Post-Production (URL) <input id="resPost" placeholder="https://..."/></label>
-          <label>Post-Production (Upload) <input id="resPostFile" type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.png,.jpg,.jpeg"/></label>
-          <div id="resPostInfo" class="muted"></div>
+<!-- Production -->
+<h5>Production</h5>
+<label>Video URL <input id="proVideoUrl" placeholder="https://youtube.com/... or direct MP4 URL"/></label>
+<label>Word (Upload) <input id="proWordFile" type="file" accept=".doc,.docx"/></label><div id="proWordInfo" class="muted"></div>
+<label>PDF (Upload) <input id="proPdfFile" type="file" accept=".pdf"/></label><div id="proPdfInfo" class="muted"></div>
+<label>PPTX (Upload) <input id="proPptxFile" type="file" accept=".ppt,.pptx"/></label><div id="proPptxInfo" class="muted"></div>
+<label>Extra Link (optional) <input id="resPro" placeholder="https://..."/></label>
 
-          <button id="saveSettings" class="secondary">Save Settings</button>
-        </div>
-      </div>
-    </section>
+<!-- Post-Production -->
+<h5>Post-Production</h5>
+<label>Video URL <input id="postVideoUrl" placeholder="https://youtube.com/... or direct MP4 URL"/></label>
+<label>Word (Upload) <input id="postWordFile" type="file" accept=".doc,.docx"/></label><div id="postWordInfo" class="muted"></div>
+<label>PDF (Upload) <input id="postPdfFile" type="file" accept=".pdf"/></label><div id="postPdfInfo" class="muted"></div>
+<label>PPTX (Upload) <input id="postPptxFile" type="file" accept=".ppt,.pptx"/></label><div id="postPptxInfo" class="muted"></div>
+<label>Extra Link (optional) <input id="resPost" placeholder="https://..."/></label>
+
+<button id="saveSettings" class="secondary">Save Settings</button>
+</div>
+</div>
+</section>
+
   </main>
 
   <footer class="app-footer" role="contentinfo"><small>© Oak Hill School Media Lab</small></footer>
@@ -133,7 +152,7 @@
     </form>
   </dialog>
 
-  <script src="idb.js?v=9"></script>
-  <script src="app.js?v=9"></script>
+  <script src="idb.js?v=10"></script>
+  <script src="app.js?v=10"></script>
 </body>
 </html>

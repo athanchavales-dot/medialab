@@ -122,49 +122,88 @@ async function renderUserTable(){
   box.querySelectorAll('button[data-del]').forEach(btn=>btn.onclick=async()=>{ const email=btn.dataset.del; if(!confirm('Delete user '+email+'?'))return; await idb.delete('users',email); await idb.delete('projects',email); renderUserTable(); });
 }
 async function saveSettings(){
-  await idb.put('settings',{ key:'uploads', pdf:$('#allowPDF').checked, images:$('#allowImages').checked, video:$('#allowVideo').checked });
+  await idb.put('settings',{
+    key:'uploads',
+    pdf: $('#allowPDF').checked,
+    images: $('#allowImages').checked,
+    video: $('#allowVideo').checked
+  });
   const existing = await idb.get('settings','resources')||{};
   await idb.put('settings',{
     key:'resources',
-    dev: $('#resDev').value.trim(),
-    pre: $('#resPre').value.trim(),
-    pro: $('#resPro').value.trim(),
-    post:$('#resPost').value.trim(),
-    devFileId: existing.devFileId||'',
-    devFileName: existing.devFileName||'',
-    preFileId: existing.preFileId||'',
-    preFileName: existing.preFileName||'',
-    proFileId: existing.proFileId||'',
-    proFileName: existing.proFileName||'',
-    postFileId: existing.postFileId||'',
-    postFileName: existing.postFileName||''
+    // extra links
+    dev: $('#resDev')?.value.trim() || '',
+    pre: $('#resPre')?.value.trim() || '',
+    pro: $('#resPro')?.value.trim() || '',
+    post:$('#resPost')?.value.trim() || '',
+    // video urls
+    devVideoUrl: $('#devVideoUrl')?.value.trim() || existing.devVideoUrl || '',
+    preVideoUrl: $('#preVideoUrl')?.value.trim() || existing.preVideoUrl || '',
+    proVideoUrl: $('#proVideoUrl')?.value.trim() || existing.proVideoUrl || '',
+    postVideoUrl:$('#postVideoUrl')?.value.trim() || existing.postVideoUrl || '',
+    // file ids + names (preserve if not changed)
+    devWordId: existing.devWordId||'', devWordName: existing.devWordName||'',
+    devPdfId:  existing.devPdfId||'',  devPdfName:  existing.devPdfName||'',
+    devPptxId: existing.devPptxId||'', devPptxName: existing.devPptxName||'',
+    preWordId: existing.preWordId||'', preWordName: existing.preWordName||'',
+    prePdfId:  existing.prePdfId||'',  prePdfName:  existing.prePdfName||'',
+    prePptxId: existing.prePptxId||'', prePptxName: existing.prePptxName||'',
+    proWordId: existing.proWordId||'', proWordName: existing.proWordName||'',
+    proPdfId:  existing.proPdfId||'',  proPdfName:  existing.proPdfName||'',
+    proPptxId: existing.proPptxId||'', proPptxName: existing.proPptxName||'',
+    postWordId: existing.postWordId||'', postWordName: existing.postWordName||'',
+    postPdfId:  existing.postPdfId||'',  postPdfName:  existing.postPdfName||'',
+    postPptxId: existing.postPptxId||'', postPptxName: existing.postPptxName||''
   });
   alert('Settings saved.');
 }
 function showAdmin(){ show('admin'); renderUserTable(); loadSettings(); }
 async function loadSettings(){
-  const res = await idb.get('settings','resources')||{dev:'',pre:'',pro:'',post:'', devFileId:'', preFileId:'', proFileId:'', postFileId:'', devFileName:'', preFileName:'', proFileName:'', postFileName:''};
-  $('#resDev').value=res.dev||''; $('#resPre').value=res.pre||''; $('#resPro').value=res.pro||''; $('#resPost').value=res.post||'';
-  if ($('#resDevInfo')) $('#resDevInfo').textContent = res.devFileId ? 'Uploaded: ' + (res.devFileName||'file') : '';
-  if ($('#resPreInfo')) $('#resPreInfo').textContent = res.preFileId ? 'Uploaded: ' + (res.preFileName||'file') : '';
-  if ($('#resProInfo')) $('#resProInfo').textContent = res.proFileId ? 'Uploaded: ' + (res.proFileName||'file') : '';
-  if ($('#resPostInfo')) $('#resPostInfo').textContent = res.postFileId ? 'Uploaded: ' + (res.postFileName||'file') : '';
+  const res = await idb.get('settings','resources')||{};
+  // Fill URLs
+  if ($('#resDev'))  $('#resDev').value  = res.dev||'';
+  if ($('#resPre'))  $('#resPre').value  = res.pre||'';
+  if ($('#resPro'))  $('#resPro').value  = res.pro||'';
+  if ($('#resPost')) $('#resPost').value = res.post||'';
+  if ($('#devVideoUrl'))  $('#devVideoUrl').value  = res.devVideoUrl||'';
+  if ($('#preVideoUrl'))  $('#preVideoUrl').value  = res.preVideoUrl||'';
+  if ($('#proVideoUrl'))  $('#proVideoUrl').value  = res.proVideoUrl||'';
+  if ($('#postVideoUrl')) $('#postVideoUrl').value = res.postVideoUrl||'';
 
-  ['Dev','Pre','Pro','Post'].forEach(stage=>{
-    const inp = document.getElementById('res'+stage+'File');
-    if (!inp) return;
+  // Show uploaded filenames
+  const setInfo = (id, name)=>{ const el = $('#'+id); if (el) el.textContent = name?('Uploaded: '+name):''; };
+  setInfo('devWordInfo', res.devWordName||''); setInfo('devPdfInfo', res.devPdfName||''); setInfo('devPptxInfo', res.devPptxName||'');
+  setInfo('preWordInfo', res.preWordName||''); setInfo('prePdfInfo', res.prePdfName||''); setInfo('prePptxInfo', res.prePptxName||'');
+  setInfo('proWordInfo', res.proWordName||''); setInfo('proPdfInfo', res.proPdfName||''); setInfo('proPptxInfo', res.proPptxName||'');
+  setInfo('postWordInfo', res.postWordName||''); setInfo('postPdfInfo', res.postPdfName||''); setInfo('postPptxInfo', res.postPptxName||'');
+
+  // Wire file inputs (save to assets + remember id+name in settings)
+  const wire = (inputId, keyBase) => {
+    const inp = $('#'+inputId); if (!inp) return;
     inp.onchange = async ()=>{
       const file = inp.files[0]; if(!file) return;
       const id = await saveAsset(file);
-      const current = await idb.get('settings','resources')||{};
-      current.key='resources';
-      current[stage.toLowerCase()+'FileId'] = id;
-      current[stage.toLowerCase()+'FileName'] = file.name;
-      await idb.put('settings', current);
-      const info = document.getElementById('res'+stage+'Info'); if(info) info.textContent = 'Uploaded: ' + file.name;
-      alert(stage+' resource uploaded.');
+      const s = await idb.get('settings','resources')||{};
+      s.key='resources';
+      s[keyBase+'Id'] = id;
+      s[keyBase+'Name'] = file.name;
+      await idb.put('settings', s);
+      const info = $('#'+keyBase.replace(/([A-Z])/g,'$1')+'Info'); // not used; we'll manually set below
+      const map = {
+        devWordFile:'devWordInfo', devPdfFile:'devPdfInfo', devPptxFile:'devPptxInfo',
+        preWordFile:'preWordInfo', prePdfFile:'prePdfInfo', prePptxFile:'prePptxInfo',
+        proWordFile:'proWordInfo', proPdfFile:'proPdfInfo', proPptxFile:'proPptxInfo',
+        postWordFile:'postWordInfo', postPdfFile:'postPdfInfo', postPptxFile:'postPptxInfo'
+      };
+      const infoId = map[inputId];
+      if (infoId && $('#'+infoId)) $('#'+infoId).textContent = 'Uploaded: ' + file.name;
+      alert(file.name + ' uploaded.');
     };
-  });
+  };
+  wire('devWordFile','devWord'); wire('devPdfFile','devPdf'); wire('devPptxFile','devPptx');
+  wire('preWordFile','preWord'); wire('prePdfFile','prePdf'); wire('prePptxFile','prePptx');
+  wire('proWordFile','proWord'); wire('proPdfFile','proPdf'); wire('proPptxFile','proPptx');
+  wire('postWordFile','postWord'); wire('postPdfFile','postPdf'); wire('postPptxFile','postPptx');
 }
 
 // -------- Teacher --------
@@ -275,8 +314,8 @@ async function renderStages(proj){
     const div=document.createElement('div'); div.className='card stage-card';
     div.innerHTML = `
       <h4>${s.emoji} ${s.name} ${st.badge?`<span class='badge'>${st.badge}</span>`:''}</h4>
+      ${stageResourceBlock(s.key, res)}
       <div class="stage-actions">
-        ${stageResourceLink(s.key, res)}
         <button data-open="${s.key}">Open Worksheet</button>
         <button data-submit="${s.key}" class="secondary"${status==='submitted'?' disabled':''}>${status==='submitted'?'Submitted':'Submit for review'}</button>
         <button data-complete="${s.key}" class="${st.completed?'secondary':''}">${st.completed?'Mark incomplete':'Mark complete'}</button>
@@ -389,3 +428,37 @@ function updateOverall(proj){ const pct=progressPercent(proj); $('#progressFill'
 function hash(str){ let h=0; for(let i=0;i<str.length;i++){ h=((h<<5)-h)+str.charCodeAt(i); h|=0; } return String(h); }
 function escapeHTML(s){ return String(s||'').replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]||c)); }
 function downloadFile(name, type, data){ const blob=new Blob([data],{type}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); }
+
+
+function embedVideoHTML(url){
+  if(!url) return '';
+  const u = url.trim();
+  try {
+    const yt = /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]{11})/.exec(u);
+    if (yt) return `<div class="card"><div class="file-preview"><iframe width="100%" height="360" src="https://www.youtube.com/embed/${yt[1]}" title="Video" frameborder="0" allowfullscreen></iframe></div></div>`;
+    const vm = /vimeo\.com\/(\d+)/.exec(u);
+    if (vm) return `<div class="card"><div class="file-preview"><iframe src="https://player.vimeo.com/video/${vm[1]}" width="100%" height="360" frameborder="0" allow="fullscreen" allowfullscreen></iframe></div></div>`;
+  } catch {}
+  // Fallback: plain link
+  return `<a class="secondary" href="${u}" target="_blank" rel="noopener">Open Video</a>`;
+}
+
+function stageResourceBlock(stageKey, settings){
+  const prefix = stageKey==='development'?'dev': stageKey==='preproduction'?'pre': stageKey==='production'?'pro':'post';
+  const items = [];
+
+  const wordId  = settings?.[prefix+'WordId'];  const wordName = settings?.[prefix+'WordName'];
+  const pdfId   = settings?.[prefix+'PdfId'];   const pdfName  = settings?.[prefix+'PdfName'];
+  const pptxId  = settings?.[prefix+'PptxId'];  const pptxName = settings?.[prefix+'PptxName'];
+  const videoUrl= settings?.[prefix+'VideoUrl'];
+  const extra   = settings?.[prefix] || '';
+
+  if (videoUrl) items.push(`<div>${embedVideoHTML(videoUrl)}</div>`);
+  if (wordId)  items.push(`<a class="secondary" data-asset-link="${wordId}"  data-asset-label="${wordName||'Open Word'}">Open ${wordName||'Word'}</a>`);
+  if (pdfId)   items.push(`<a class="secondary" data-asset-link="${pdfId}"   data-asset-label="${pdfName||'Open PDF'}">Open ${pdfName||'PDF'}</a>`);
+  if (pptxId)  items.push(`<a class="secondary" data-asset-link="${pptxId}"  data-asset-label="${pptxName||'Open PPTX'}">Open ${pptxName||'PPTX'}</a>`);
+  if (extra.trim()) items.push(`<a class="secondary" href="${extra.trim()}" target="_blank" rel="noopener">Extra Link</a>`);
+
+  if (!items.length) return '';
+  return `<div class="card"><strong>Stage Resources</strong><div class="stage-actions">${items.join(' ')}</div></div>`;
+}
