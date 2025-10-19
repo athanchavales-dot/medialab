@@ -35,6 +35,17 @@
     </section>
 
     <section id="view-student" class="view" aria-labelledby="studentHeading">
+<!-- Student – Assignments hub -->
+<div class="grid" id="studentAssignments">
+  <!-- Stage cards are rendered by JS -->
+</div>
+
+<!-- Student – Notifications -->
+<div class="card" id="studentNotifications" aria-live="polite">
+  <h3>Notifications</h3>
+  <ul class="list" id="studentNotices"></ul>
+</div>
+
       <h2 id="studentHeading">Student Dashboard</h2>
       <div class="progress-wrap card">
         <div>
@@ -51,6 +62,31 @@
     </section>
 
     <section id="view-teacher" class="view" aria-labelledby="teacherHeading">
+<!-- Teacher – Submissions dashboard -->
+<div class="card">
+  <h3>Submissions overview</h3>
+  <div class="toolbar">
+    <label>Filter:
+      <select id="subFilter">
+        <option value="all">All</option>
+        <option value="pending">Pending review</option>
+        <option value="reviewed">Reviewed</option>
+        <option value="needs_changes">Needs changes</option>
+      </select>
+    </label>
+    <label>Stage:
+      <select id="subStageFilter">
+        <option value="all">All stages</option>
+        <option value="development">Development</option>
+        <option value="preproduction">Pre-Production</option>
+        <option value="production">Production</option>
+        <option value="postproduction">Post-Production</option>
+      </select>
+    </label>
+  </div>
+  <div id="teacherSubmissions" class="list"></div>
+</div>
+
       <h2 id="teacherHeading">Teacher Dashboard</h2>
       <div class="toolbar">
         <input id="searchStudent" type="search" placeholder="Search students…" aria-label="Search students"/>
@@ -153,6 +189,60 @@
       <menu><button value="cancel" class="secondary" aria-label="Close worksheet dialog">Close</button></menu>
     </form>
   </dialog>
+
+  <!-- Feedback dialog -->
+<dialog id="feedbackDialog" aria-label="Teacher Feedback" aria-modal="true" role="dialog">
+  <form method="dialog">
+    <h3 id="fbTitle">Review Submission</h3>
+    <p id="fbMeta" class="muted"></p>
+
+    <div class="grid">
+      <div class="card">
+        <h4>Rubric</h4>
+        <div class="rubric-rows" id="fbRubric"></div>
+      </div>
+
+      <div class="card">
+        <h4>Comments</h4>
+        <label class="block">
+          <span class="sr-only">Add text feedback</span>
+          <textarea id="fbText" rows="5" placeholder="Short, clear, encouraging feedback…" required></textarea>
+        </label>
+
+        <div class="audio-bar">
+          <button type="button" id="fbRecordBtn" class="btn" aria-pressed="false">🎙️ Record</button>
+          <span id="fbRecordStatus" class="muted">Not recording</span>
+          <audio id="fbAudioPreview" controls class="hidden"></audio>
+        </div>
+
+        <div class="toolbar">
+          <label>Status:
+            <select id="fbStatus">
+              <option value="reviewed">Reviewed (Good to go)</option>
+              <option value="needs_changes">Needs changes</option>
+            </select>
+          </label>
+          <button type="button" id="fbSave" class="btn">Save feedback</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h4>Conversation</h4>
+        <div id="fbThread" class="thread" aria-live="polite"></div>
+        <div class="thread-reply">
+          <input id="fbReply" placeholder="Reply to this submission…" />
+          <button type="button" id="fbSendReply" class="btn">Send</button>
+        </div>
+      </div>
+    </div>
+
+    <menu>
+      <button value="cancel" class="secondary" aria-label="Close feedback dialog">Close</button>
+    </menu>
+  </form>
+</dialog>
+
+
 
   <script src="idb.js?v=12"></script>
   <script src="app.js?v=12"></script>

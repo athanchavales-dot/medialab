@@ -111,3 +111,38 @@ dialog[open] { border: none; border-radius: var(--radius); box-shadow: var(--sha
 /* Ensure sufficient text contrast inside accent buttons */
 .btn, button.primary { background: var(--accent); color: #000; }
 .btn.secondary { background: #eee; color: #111; }
+
+
+/* Assignments grid */
+#studentAssignments { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.stage-card { background:#fff; border:1px solid #eee; border-radius: var(--radius); padding: 12px; box-shadow: var(--shadow); }
+.stage-card h4 { margin: 0 0 8px; }
+.stage-actions { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+
+/* Submissions list */
+.list .row { display:flex; gap:12px; align-items:center; justify-content:space-between; padding:10px; border-bottom:1px solid #eee; }
+.list .row:last-child{ border-bottom: 0; }
+.meta { font-size: 12px; color: var(--muted); }
+.status-pill { display:inline-block; padding:4px 8px; border-radius:999px; font-size:12px; border:1px solid #eee; }
+.status-pill.pending{ background:#fff5d6; }
+.status-pill.reviewed{ background:#e7ffe7; }
+.status-pill.needs_changes{ background:#ffe7e7; }
+
+/* Thread */
+.thread { display:flex; flex-direction:column; gap:8px; max-height: 260px; overflow:auto; padding-right:4px; }
+.msg { background:#fff; border:1px solid #eee; border-radius:12px; padding:8px 10px; }
+.msg .by { font-weight: 600; margin-right: 6px; }
+.thread-reply { display:flex; gap:8px; margin-top:8px; }
+.thread-reply input { flex: 1; }
+
+/* Rubric */
+.rubric-rows { display:grid; gap:8px; }
+.rubric-row { display:grid; grid-template-columns: 1fr auto; gap:10px; align-items:center; }
+.rubric-pick { display:flex; gap:8px; }
+.rubric-pick input { margin-right: 4px; }
+
+/* Audio */
+.audio-bar { display:flex; gap:10px; align-items:center; }
+.hidden { display:none !important; }
+.block { display:block; }
+.toolbar { display:flex; gap:12px; align-items:center; flex-wrap: wrap; }

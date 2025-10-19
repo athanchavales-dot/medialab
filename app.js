@@ -661,3 +661,275 @@ document.addEventListener('click', (e)=>{
   if (t && t.matches('[data-open="worksheet"]')){ e.preventDefault(); if (window.WSDialog) window.WSDialog.open(); }
   if (t && t.matches('[data-close="worksheet"]')){ e.preventDefault(); if (window.WSDialog) window.WSDialog.close(); }
 });
+
+
+// ===============================
+// Assignment, Feedback & Threads
+// ===============================
+
+function uid(prefix='id'){ return prefix + '_' + Math.random().toString(36).slice(2,9) + Date.now().toString(36); }
+function fmtDate(ts){ const d = new Date(ts); return d.toLocaleString(); }
+async function currentUser(){ return await idb.get('settings','currentUser') || { role:'student', email:'student@example.com', name:'Student' }; }
+async function getUser(email){ return await idb.get('users', email) || { email, name: email.split('@')[0] }; }
+
+const STAGE_LABELS = {
+  development:'Development', preproduction:'Pre-Production', production:'Production', postproduction:'Post-Production'
+};
+const DEFAULT_RUBRIC = {
+  development: ['Idea clarity','Character','Story structure'],
+  preproduction: ['Storyboard detail','Shot plan','Roles & resources'],
+  production: ['Camera & sound','Teamwork','Safety'],
+  postproduction: ['Editing','Audio/titles','Reflection']
+};
+
+async function saveSubmission(stage, {note, files=[]}){
+  const me = await currentUser();
+  const s = {
+    id: uid('sub'),
+    stage,
+    stageName: STAGE_LABELS[stage] || stage,
+    owner: me.email,
+    ownerName: me.name || me.email,
+    note: (note||'').trim(),
+    assets: [],
+    status: 'pending',
+    createdAt: Date.now(),
+    updatedAt: Date.now()
+  };
+  for (const f of files){
+    const id = uid('asset');
+    const bin = await f.arrayBuffer?.() ?? f;
+    await idb.put('assets', { id, name: f.name || ('file_' + id), type: f.type || 'application/octet-stream', data: bin, createdAt: Date.now() });
+    s.assets.push({ id, name: f.name, type: f.type });
+  }
+  await idb.put('submissions', s);
+  announce('Submission created for ' + s.stageName);
+  return s;
+}
+async function listMySubmissions(stage='all'){
+  const me = await currentUser();
+  const all = await idb.getAll('submissions');
+  return all.filter(x=>x.owner===me.email && (stage==='all' || x.stage===stage)).sort((a,b)=>b.updatedAt - a.updatedAt);
+}
+async function listAllSubmissions({status='all', stage='all'}={}){
+  const all = await idb.getAll('submissions');
+  return all.filter(x=>(status==='all'||x.status===status) && (stage==='all'||x.stage===stage)).sort((a,b)=>b.updatedAt - a.updatedAt);
+}
+async function addComment(subId, text){
+  const me = await currentUser();
+  const c = { id: uid('c'), subId, by: me.email, byName: me.name || me.email, text: text.trim(), createdAt: Date.now() };
+  await idb.put('comments', c);
+  const sub = await idb.get('submissions', subId);
+  if (sub && me.email !== sub.owner) pushNotice(sub.owner, `💬 New comment on ${sub.stageName} from ${me.name || me.email}`);
+  return c;
+}
+async function getComments(subId){
+  const all = await idb.getAll('comments');
+  return all.filter(c=>c.subId===subId).sort((a,b)=>a.createdAt - b.createdAt);
+}
+async function saveFeedback(subId, {rubricMap, text, status, audioAssetId}){
+  const me = await currentUser();
+  const sub = await idb.get('submissions', subId);
+  if (!sub) throw new Error('Submission not found');
+  const fb = {
+    id: uid('fb'), subId, by: me.email, byName: me.name || me.email,
+    rubric: rubricMap, text: text.trim(), audioAssetId: audioAssetId || null, createdAt: Date.now()
+  };
+  await idb.put('comments', { id: fb.id, subId, by: fb.by, byName: fb.byName, text: `📝 Feedback: ${fb.text}`, createdAt: fb.createdAt });
+  sub.status = status; sub.updatedAt = Date.now(); await idb.put('submissions', sub);
+  if (me.email !== sub.owner) {
+    const msg = status==='needs_changes' ? `🔄 Feedback: please improve your ${sub.stageName}` : `✅ Your ${sub.stageName} has been reviewed`;
+    pushNotice(sub.owner, msg);
+  }
+  announce('Feedback saved'); return fb;
+}
+async function storeAudioBlob(blob){
+  const id = uid('asset'); const ab = await blob.arrayBuffer();
+  await idb.put('assets', { id, name: 'audio-' + id + '.webm', type: 'audio/webm', data: ab, createdAt: Date.now() });
+  return id;
+}
+async function getAssetUrl(assetId){
+  const a = await idb.get('assets', assetId); if (!a) return null;
+  const blob = new Blob([a.data], { type: a.type||'application/octet-stream' });
+  return URL.createObjectURL(blob);
+}
+async function pushNotice(email, message){
+  const key = 'notices:' + email;
+  const rec = (await idb.get('settings', key)) || { key, items: [] };
+  rec.items.unshift({ id: uid('n'), message, createdAt: Date.now() });
+  rec.items = rec.items.slice(0, 20);
+  await idb.put('settings', rec);
+}
+async function pullNotices(){
+  const me = await currentUser();
+  const key = 'notices:' + me.email;
+  const rec = (await idb.get('settings', key)) || { key, items: [] };
+  return rec.items;
+}
+function announce(msg){
+  const live = document.getElementById('liveRegion');
+  if (live){ live.textContent = ''; setTimeout(()=> live.textContent = msg, 30); }
+}
+
+async function renderStudentStages(){
+  const host = document.getElementById('studentAssignments'); if (!host) return;
+  host.innerHTML = '';
+  const stages = ['development','preproduction','production','postproduction'];
+  for (const st of stages){
+    const card = document.createElement('div'); card.className = 'stage-card';
+    card.innerHTML = `
+      <h4>${STAGE_LABELS[st]}</h4>
+      <div class="stage-actions">
+        <input type="file" id="file-${st}" aria-label="Upload file for ${STAGE_LABELS[st]}" multiple />
+        <input type="text" id="note-${st}" placeholder="Add a short note…" />
+        <button class="btn" data-submit="${st}">Submit</button>
+      </div>
+      <div class="meta"><span id="count-${st}">0</span> previous submissions</div>
+      <div class="list" id="mine-${st}"></div>`;
+    host.appendChild(card);
+    card.querySelector('[data-submit]').addEventListener('click', async () => {
+      const files = Array.from(card.querySelector(`#file-${st}`).files || []);
+      const note = card.querySelector(`#note-${st}`).value;
+      await saveSubmission(st, { note, files });
+      card.querySelector(`#note-${st}`).value = '';
+      await refreshStudentLists();
+    });
+  }
+  await refreshStudentLists();
+}
+async function refreshStudentLists(){
+  for (const st of ['development','preproduction','production','postproduction']){
+    const mineEl = document.getElementById('mine-'+st); if (!mineEl) continue;
+    const items = await listMySubmissions(st);
+    const countEl = document.getElementById('count-'+st); if (countEl) countEl.textContent = items.length;
+    mineEl.innerHTML = items.map(s => `
+      <div class="row">
+        <div>
+          <div><strong>${s.stageName}</strong> <span class="status-pill ${s.status}">${s.status.replace('_',' ')}</span></div>
+          <div class="meta">${fmtDate(s.updatedAt)} • ${s.assets.length} file(s)</div>
+        </div>
+        <button class="btn" data-open-thread="${s.id}">Open thread</button>
+      </div>`).join('');
+  }
+  const notes = await pullNotices();
+  const ul = document.getElementById('studentNotices');
+  if (ul) ul.innerHTML = notes.map(n=>`<li>${n.message} <span class="meta">(${fmtDate(n.createdAt)})</span></li>`).join('');
+}
+async function renderTeacherSubmissions(){
+  const wrap = document.getElementById('teacherSubmissions'); if (!wrap) return;
+  const status = document.getElementById('subFilter')?.value || 'all';
+  const stage = document.getElementById('subStageFilter')?.value || 'all';
+  const items = await listAllSubmissions({ status, stage });
+  wrap.innerHTML = items.map(s => `
+    <div class="row">
+      <div>
+        <div><strong>${s.ownerName}</strong> • ${s.stageName} <span class="status-pill ${s.status}">${s.status.replace('_',' ')}</span></div>
+        <div class="meta">${fmtDate(s.updatedAt)} • ${s.assets.length} file(s)</div>
+      </div>
+      <div class="toolbar">
+        <button class="btn" data-review="${s.id}">Review</button>
+        <button class="btn secondary" data-open-thread="${s.id}">Open thread</button>
+      </div>
+    </div>`).join('');
+}
+async function openThread(subId){
+  const thread = document.getElementById('fbThread'); if (!thread) return;
+  thread.innerHTML = '<p class="muted">Loading…</p>';
+  const items = await getComments(subId);
+  const html = items.map(m=>`<div class="msg"><span class="by">${m.byName}</span><span class="meta">${fmtDate(m.createdAt)}</span><div>${m.text}</div></div>`).join('');
+  thread.innerHTML = html || '<p class="muted">No messages yet.</p>';
+}
+let FB_CTX = { subId:null, media:null, recording:false, audioId:null };
+async function openFeedback(subId){
+  FB_CTX = { subId, media:null, recording:false, audioId:null };
+  const dlg = document.getElementById('feedbackDialog');
+  const sub = await idb.get('submissions', subId);
+  const owner = await getUser(sub.owner);
+  document.getElementById('fbTitle').textContent = `Review: ${owner.name || owner.email} — ${sub.stageName}`;
+  document.getElementById('fbMeta').textContent = `${sub.assets.length} file(s) • ${fmtDate(sub.createdAt)}`;
+  const crits = DEFAULT_RUBRIC[sub.stage] || DEFAULT_RUBRIC.development;
+  const rb = document.getElementById('fbRubric');
+  rb.innerHTML = crits.map((c,i)=>`
+    <div class="rubric-row">
+      <div>${c}</div>
+      <div class="rubric-pick">
+        <label><input type="radio" name="r${i}" value="💪 Excellent"> 💪</label>
+        <label><input type="radio" name="r${i}" value="👍 Good"> 👍</label>
+        <label><input type="radio" name="r${i}" value="🔄 Needs work"> 🔄</label>
+      </div>
+    </div>`).join('');
+  document.getElementById('fbText').value = '';
+  document.getElementById('fbStatus').value = 'reviewed';
+  const aud = document.getElementById('fbAudioPreview'); aud.src=''; aud.classList.add('hidden');
+  await openThread(subId);
+  if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open','');
+  setTimeout(()=> document.getElementById('fbText')?.focus(), 50);
+}
+function closeFeedback(){ const dlg = document.getElementById('feedbackDialog'); if (dlg.open) dlg.close(); }
+async function toggleRecord(){
+  const btn = document.getElementById('fbRecordBtn'); const status = document.getElementById('fbRecordStatus'); const preview = document.getElementById('fbAudioPreview');
+  if (!FB_CTX.media){
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+      const rec = new MediaRecorder(stream);
+      const chunks = [];
+      rec.ondataavailable = e=> chunks.push(e.data);
+      rec.onstop = async ()=>{
+        const blob = new Blob(chunks, { type:'audio/webm' });
+        FB_CTX.audioId = await storeAudioBlob(blob);
+        const url = await getAssetUrl(FB_CTX.audioId);
+        preview.src = url; preview.classList.remove('hidden');
+        status.textContent = 'Recorded';
+        btn.setAttribute('aria-pressed','false');
+        FB_CTX.recording = false;
+      };
+      FB_CTX.media = { stream, rec };
+    } catch(err){ alert('Microphone not available.'); return; }
+  }
+  if (!FB_CTX.recording){
+    FB_CTX.media.rec.start();
+    btn.setAttribute('aria-pressed','true'); FB_CTX.recording = true;
+    status.textContent = 'Recording… (press again to stop)';
+  } else {
+    FB_CTX.media.rec.stop();
+    FB_CTX.media.stream.getTracks().forEach(t=>t.stop());
+    status.textContent = 'Saving…';
+  }
+}
+async function handleSaveFeedback(){
+  const subId = FB_CTX.subId;
+  const crits = Array.from(document.getElementById('fbRubric').querySelectorAll('.rubric-row'));
+  const rubric = {};
+  crits.forEach((row,i)=>{
+    const label = row.firstElementChild.textContent.trim();
+    const pick = row.querySelector('input[type=radio]:checked');
+    rubric[label] = pick ? pick.value : '👍 Good';
+  });
+  const text = document.getElementById('fbText').value;
+  const status = document.getElementById('fbStatus').value;
+  await saveFeedback(subId, { rubricMap: rubric, text, status, audioAssetId: FB_CTX.audioId });
+  await openThread(subId);
+  if (document.getElementById('subFilter')) renderTeacherSubmissions();
+  await refreshStudentLists();
+  announce('Feedback saved.');
+}
+document.addEventListener('click', async (e)=>{
+  const t = e.target;
+  if (t && t.matches('[data-review]')){ e.preventDefault(); const id = t.getAttribute('data-review'); openFeedback(id); }
+  if (t && t.matches('[data-open-thread]')){ e.preventDefault(); const id = t.getAttribute('data-open-thread'); await openFeedback(id); }
+});
+document.addEventListener('DOMContentLoaded', () => {
+  renderStudentStages(); refreshStudentLists();
+  document.getElementById('subFilter')?.addEventListener('change', renderTeacherSubmissions);
+  document.getElementById('subStageFilter')?.addEventListener('change', renderTeacherSubmissions);
+  renderTeacherSubmissions();
+  document.getElementById('fbRecordBtn')?.addEventListener('click', toggleRecord);
+  document.getElementById('fbSave')?.addEventListener('click', handleSaveFeedback);
+  document.getElementById('fbSendReply')?.addEventListener('click', async ()=>{
+    const txt = document.getElementById('fbReply').value.trim(); if (!txt) return;
+    await addComment(FB_CTX.subId, txt);
+    document.getElementById('fbReply').value = '';
+    await openThread(FB_CTX.subId);
+    await refreshStudentLists();
+  });
+});
