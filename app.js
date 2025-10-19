@@ -1,4 +1,4 @@
-// Oak Hill Media Lab v13 (Inline Previews)
+// Oak Hill Media Lab v9 (PLUS + Submissions + Admin uploads)
 const $ = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
 
@@ -36,7 +36,7 @@ const WORKSHEETS = {
   ]
 };
 
-// ---- Asset helpers ----
+// ---- Asset helpers (Admin stage resources) ----
 async function saveAsset(file){
   const rec = { id: crypto.randomUUID(), name: file.name, type: file.type, blob: file };
   await idb.put('assets', rec);
@@ -45,84 +45,6 @@ async function saveAsset(file){
 async function getAssetURL(id){
   const a = await idb.get('assets', id);
   return a ? URL.createObjectURL(a.blob) : '';
-}
-
-// ---- Inline preview helpers ----
-function canOfficeEmbed(url){
-  return /^https?:\/\//i.test(url) && (url.endsWith('.doc') || url.endsWith('.docx') || url.endsWith('.ppt') || url.endsWith('.pptx'));
-}
-function officeEmbedHTML(url){
-  const enc = encodeURIComponent(url);
-  return `<div class="viewer"><iframe src="https://view.officeapps.live.com/op/embed.aspx?src=${enc}" frameborder="0"></iframe></div>`;
-}
-async function pdfEmbedHTML(id, name){
-  const href = await getAssetURL(id);
-  if (!href) return '';
-  return `<div class="viewer"><object data="${href}" type="application/pdf">PDF preview not available. <a href="${href}" target="_blank" rel="noopener">Open ${name||'PDF'}</a></object></div>`;
-}
-async function docxPreviewBlock(id, name, fallbackUrl){
-  const href = await getAssetURL(id);
-  let html = `<div class="viewer">`;
-  if (fallbackUrl && canOfficeEmbed(fallbackUrl)){
-    html += officeEmbedHTML(fallbackUrl);
-  } else {
-    html += `<div class="note">Inline preview of Word/PPTX uploads isn't supported by the browser. Click to open in a new tab.</div>`;
-    if (href) html += `<a class="btn secondary" href="${href}" target="_blank" rel="noopener"><span class="ico">🗂️</span><span>Open ${name||'file'}</span></a>`;
-  }
-  html += `</div>`;
-  return html;
-}
-
-// ---- Minimal ZIP builder (stored/no compression) ----
-function crc32(buf){
-  let table = crc32.table;
-  if (!table){
-    table = new Uint32Array(256);
-    for (let i=0;i<256;i++){
-      let c=i;
-      for (let k=0;k<8;k++) c = (c & 1) ? (0xEDB88320 ^ (c>>>1)) : (c>>>1);
-      table[i]=c>>>0;
-    }
-    crc32.table = table;
-  }
-  let c = 0xFFFFFFFF;
-  const u8 = new Uint8Array(buf);
-  for (let i=0;i<u8.length;i++) c = table[(c ^ u8[i]) & 0xFF] ^ (c >>> 8);
-  return (c ^ 0xFFFFFFFF) >>> 0;
-}
-function strToU8(s){ return new TextEncoder().encode(s); }
-function u32LE(n){ const b=new Uint8Array(4); new DataView(b.buffer).setUint32(0,n,true); return b; }
-function u16LE(n){ const b=new Uint8Array(2); new DataView(b.buffer).setUint16(0,n,true); return b; }
-async function buildZip(files){
-  const chunks = []; let offset = 0; const central = [];
-  for (const f of files){
-    const nameU8 = strToU8(f.name);
-    const buf = await f.blob.arrayBuffer();
-    const size = buf.byteLength;
-    const crc = crc32(buf);
-    chunks.push(strToU8('PK\x03\x04')); chunks.push(u16LE(20)); chunks.push(u16LE(0)); chunks.push(u16LE(0));
-    chunks.push(u16LE(0)); chunks.push(u16LE(0)); chunks.push(u32LE(crc));
-    chunks.push(u32LE(size)); chunks.push(u32LE(size)); chunks.push(u16LE(nameU8.length)); chunks.push(u16LE(0));
-    chunks.push(nameU8); chunks.push(new Uint8Array(buf));
-    central.push({nameU8, crc, size, offset});
-    offset += 30 + nameU8.length + size;
-  }
-  const startCD = offset;
-  for (const c of central){
-    chunks.push(strToU8('PK\x01\x02'));
-    chunks.push(u16LE(20)); chunks.push(u16LE(20)); chunks.push(u16LE(0)); chunks.push(u16LE(0));
-    chunks.push(u16LE(0)); chunks.push(u16LE(0)); chunks.push(u32LE(c.crc)); chunks.push(u32LE(c.size)); chunks.push(u32LE(c.size));
-    chunks.push(u16LE(c.nameU8.length)); chunks.push(u16LE(0)); chunks.push(u16LE(0)); chunks.push(u16LE(0)); chunks.push(u16LE(0));
-    chunks.push(u32LE(0)); chunks.push(u32LE(c.offset)); chunks.push(c.nameU8);
-  }
-  const sizeCD = chunks.slice(chunks.findIndex(x=>x===strToU8('PK\x01\x02'))).reduce((a,b)=>a + (b.byteLength||b.length||0), 0);
-  const endCD = startCD + sizeCD;
-  chunks.push(strToU8('PK\x05\x06')); chunks.push(u16LE(0)); chunks.push(u16LE(0));
-  chunks.push(u16LE(central.length)); chunks.push(u16LE(central.length));
-  chunks.push(u32LE(sizeCD)); chunks.push(u32LE(startCD)); chunks.push(u16LE(0));
-  const total = new Uint8Array(chunks.reduce((a,b)=>a+(b.byteLength||b.length||0),0));
-  let p=0; for (const c of chunks){ total.set(c, p); p += (c.byteLength||c.length||0); }
-  return new Blob([total], {type:'application/zip'});
 }
 
 let session = null;
@@ -200,18 +122,26 @@ async function renderUserTable(){
   box.querySelectorAll('button[data-del]').forEach(btn=>btn.onclick=async()=>{ const email=btn.dataset.del; if(!confirm('Delete user '+email+'?'))return; await idb.delete('users',email); await idb.delete('projects',email); renderUserTable(); });
 }
 async function saveSettings(){
-  await idb.put('settings',{ key:'uploads', pdf:$('#allowPDF').checked, images:$('#allowImages').checked, video:$('#allowVideo').checked });
+  await idb.put('settings',{
+    key:'uploads',
+    pdf: $('#allowPDF').checked,
+    images: $('#allowImages').checked,
+    video: $('#allowVideo').checked
+  });
   const existing = await idb.get('settings','resources')||{};
   await idb.put('settings',{
     key:'resources',
+    // extra links
     dev: $('#resDev')?.value.trim() || '',
     pre: $('#resPre')?.value.trim() || '',
     pro: $('#resPro')?.value.trim() || '',
     post:$('#resPost')?.value.trim() || '',
+    // video urls
     devVideoUrl: $('#devVideoUrl')?.value.trim() || existing.devVideoUrl || '',
     preVideoUrl: $('#preVideoUrl')?.value.trim() || existing.preVideoUrl || '',
     proVideoUrl: $('#proVideoUrl')?.value.trim() || existing.proVideoUrl || '',
     postVideoUrl:$('#postVideoUrl')?.value.trim() || existing.postVideoUrl || '',
+    // file ids + names (preserve if not changed)
     devWordId: existing.devWordId||'', devWordName: existing.devWordName||'',
     devPdfId:  existing.devPdfId||'',  devPdfName:  existing.devPdfName||'',
     devPptxId: existing.devPptxId||'', devPptxName: existing.devPptxName||'',
@@ -230,6 +160,7 @@ async function saveSettings(){
 function showAdmin(){ show('admin'); renderUserTable(); loadSettings(); }
 async function loadSettings(){
   const res = await idb.get('settings','resources')||{};
+  // Fill URLs
   if ($('#resDev'))  $('#resDev').value  = res.dev||'';
   if ($('#resPre'))  $('#resPre').value  = res.pre||'';
   if ($('#resPro'))  $('#resPro').value  = res.pro||'';
@@ -239,12 +170,14 @@ async function loadSettings(){
   if ($('#proVideoUrl'))  $('#proVideoUrl').value  = res.proVideoUrl||'';
   if ($('#postVideoUrl')) $('#postVideoUrl').value = res.postVideoUrl||'';
 
+  // Show uploaded filenames
   const setInfo = (id, name)=>{ const el = $('#'+id); if (el) el.textContent = name?('Uploaded: '+name):''; };
   setInfo('devWordInfo', res.devWordName||''); setInfo('devPdfInfo', res.devPdfName||''); setInfo('devPptxInfo', res.devPptxName||'');
   setInfo('preWordInfo', res.preWordName||''); setInfo('prePdfInfo', res.prePdfName||''); setInfo('prePptxInfo', res.prePptxName||'');
   setInfo('proWordInfo', res.proWordName||''); setInfo('proPdfInfo', res.proPdfName||''); setInfo('proPptxInfo', res.proPptxName||'');
   setInfo('postWordInfo', res.postWordName||''); setInfo('postPdfInfo', res.postPdfName||''); setInfo('postPptxInfo', res.postPptxName||'');
 
+  // Wire file inputs (save to assets + remember id+name in settings)
   const wire = (inputId, keyBase) => {
     const inp = $('#'+inputId); if (!inp) return;
     inp.onchange = async ()=>{
@@ -255,12 +188,14 @@ async function loadSettings(){
       s[keyBase+'Id'] = id;
       s[keyBase+'Name'] = file.name;
       await idb.put('settings', s);
-      const infoId = {
+      const info = $('#'+keyBase.replace(/([A-Z])/g,'$1')+'Info'); // not used; we'll manually set below
+      const map = {
         devWordFile:'devWordInfo', devPdfFile:'devPdfInfo', devPptxFile:'devPptxInfo',
         preWordFile:'preWordInfo', prePdfFile:'prePdfInfo', prePptxFile:'prePptxInfo',
         proWordFile:'proWordInfo', proPdfFile:'proPdfInfo', proPptxFile:'proPptxInfo',
         postWordFile:'postWordInfo', postPdfFile:'postPdfInfo', postPptxFile:'postPptxInfo'
-      }[inputId];
+      };
+      const infoId = map[inputId];
       if (infoId && $('#'+infoId)) $('#'+infoId).textContent = 'Uploaded: ' + file.name;
       alert(file.name + ' uploaded.');
     };
@@ -295,7 +230,7 @@ async function openStudentModal(user, proj){
       <h4>${s.emoji} ${s.name} ${st.completed?'✅':''} ${st.badge?`<span class='badge'>${st.badge}</span>`:''}</h4>
       <details open><summary><strong>Worksheet Submission</strong> (<span id="ws-status-${s.key}">Loading…</span>)</summary>
         <div id="ws-answers-${s.key}">Loading…</div>
-        <div class="stage-actions">
+        <div id="res-${s.key}"></div><div class="stage-actions">
           <button class="secondary" data-return="${s.key}">Return for edits</button>
           <button class="secondary" data-approve="${s.key}">${st.completed?'Mark Incomplete':'Approve Stage'}</button>
         </div>
@@ -304,7 +239,7 @@ async function openStudentModal(user, proj){
       <label>Teacher Feedback<textarea data-fb="${s.key}" placeholder="Feedback for ${s.name}...">${st.feedback||''}</textarea></label>
       <details open><summary><strong>Comments</strong></summary>
         <div id="comments-${s.key}">Loading…</div>
-        <div class="stage-actions"><input id="cmt-input-${s.key}" placeholder="Write a comment…"/><button data-cmt="${s.key}">Send</button></div>
+        <div id="res-${s.key}"></div><div class="stage-actions"><input id="cmt-input-${s.key}" placeholder="Write a comment…"/><button data-cmt="${s.key}">Send</button></div>
       </details>
     </div>`;
   }).join('');
@@ -360,50 +295,17 @@ async function exportCSV(){
 
 // -------- Student --------
 async function showStudent(){ show('student'); const proj=await ensureProject(session.email); renderStages(proj); updateOverall(proj); }
-function thumbHTML(kind, name){
-  const icon = kind==='word'?'🗒️': kind==='pdf'?'📄':'📊';
-  return `<span class="thumb"><span class="ico">${icon}</span><span class="fn">${name}</span></span>`;
-}
-function embedVideoHTML(url){
-  if(!url) return '';
-  const u = url.trim();
-  try {
-    const yt = /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]{11})/.exec(u);
-    if (yt) return `<div class="card"><strong>Video</strong><div class="file-preview"><iframe width="100%" height="360" src="https://www.youtube.com/embed/${yt[1]}" title="Video" frameborder="0" allowfullscreen></iframe></div></div>`;
-    const vm = /vimeo\.com\/(\d+)/.exec(u);
-    if (vm) return `<div class="card"><strong>Video</strong><div class="file-preview"><iframe src="https://player.vimeo.com/video/${vm[1]}" width="100%" height="360" frameborder="0" allow="fullscreen" allowfullscreen></iframe></div></div>`;
-  } catch {}
-  return `<a class="secondary" href="${u}" target="_blank" rel="noopener">Open Video</a>`;
-}
-async function stageResourceBlock(stageKey, settings){
-  const prefix = stageKey==='development'?'dev': stageKey==='preproduction'?'pre': stageKey==='production'?'pro':'post';
-  const wordId  = settings?.[prefix+'WordId'];  const wordName = settings?.[prefix+'WordName'];
-  const pdfId   = settings?.[prefix+'PdfId'];   const pdfName  = settings?.[prefix+'PdfName'];
-  const pptxId  = settings?.[prefix+'PptxId'];  const pptxName = settings?.[prefix+'PptxName'];
-  const videoUrl= settings?.[prefix+'VideoUrl'];
-  const extra   = (settings?.[prefix] || '').trim();
-
-  const chunks = [];
-  const thumbs = [];
-  if (wordId) thumbs.push(thumbHTML('word', wordName||'Word file'));
-  if (pdfId)  thumbs.push(thumbHTML('pdf',  pdfName ||'PDF file'));
-  if (pptxId) thumbs.push(thumbHTML('pptx', pptxName||'PPTX file'));
-  if (thumbs.length) chunks.push(`<div class="resource-bar">${thumbs.join(' ')}</div>`);
-
-  const btns = [];
-  if (videoUrl) btns.push(`${embedVideoHTML(videoUrl)}`);
-  if (wordId)  btns.push(`<button class="btn" data-open-inline="${prefix}-word"><span class="ico">🗒️</span><span>Open Word</span></button>`);
-  if (pdfId)   btns.push(`<button class="btn" data-open-inline="${prefix}-pdf"><span class="ico">📄</span><span>Open PDF</span></button>`);
-  if (pptxId)  btns.push(`<button class="btn" data-open-inline="${prefix}-pptx"><span class="ico">📊</span><span>Open PPTX</span></button>`);
-  if (extra)   btns.push(`<a class="btn secondary" href="${extra}" target="_blank" rel="noopener"><span class="ico">🔗</span><span>INTO FILM Source</span></a>`);
-  const any = [wordId,pdfId,pptxId].filter(Boolean);
-  if (any.length){
-    btns.push(`<button class="btn btn-zip" data-zip-stage="${stageKey}"><span class="ico">🗂️</span><span>Download all stage resources (.zip)</span></button>`);
+function stageResourceLink(sKey, settings){
+  const map={development:'dev',preproduction:'pre',production:'pro',postproduction:'post'};
+  const fileMap={development:'devFileId',preproduction:'preFileId',production:'proFileId',postproduction:'postFileId'};
+  const nameMap={development:'devFileName',preproduction:'preFileName',production:'proFileName',postproduction:'postFileName'};
+  const url=(settings?.[map[sKey]]||'').trim();
+  const fileId=settings?.[fileMap[sKey]]||'';
+  const label = settings?.[nameMap[sKey]] ? `Open ${settings[nameMap[sKey]]}` : 'Open worksheet/slides';
+  if (fileId){
+    return `<a class="secondary" data-asset-link="${fileId}" data-asset-label="${label}">${label}</a>` + (url?` <a class="secondary" href="${url}" target="_blank" rel="noopener">Open (URL)</a>`:'');
   }
-  if (btns.length) chunks.push(`<div class="resource-bar">${btns.join(' ')}</div>`);
-  chunks.push(`<div class="viewer" id="viewer-${prefix}"></div>`);
-  if (!btns.length && !thumbs.length) return '';
-  return `<div class="card"><strong>Stage Resources</strong>${chunks.join('')}</div>`;
+  return url?`<a class="secondary" href="${url}" target="_blank" rel="noopener">${label}</a>`:'';
 }
 async function renderStages(proj){
   const box=$('#stagesContainer'); box.innerHTML=''; const res=await idb.get('settings','resources');
@@ -412,8 +314,8 @@ async function renderStages(proj){
     const div=document.createElement('div'); div.className='card stage-card';
     div.innerHTML = `
       <h4>${s.emoji} ${s.name} ${st.badge?`<span class='badge'>${st.badge}</span>`:''}</h4>
-      <div id="res-${s.key}"></div>
-      <div class="stage-actions">
+      ${/* async block follows */ ''}
+      <div id="res-${s.key}"></div><div class="stage-actions">
         <button data-open="${s.key}">Open Worksheet</button>
         <button data-submit="${s.key}" class="secondary"${status==='submitted'?' disabled':''}>${status==='submitted'?'Submitted':'Submit for review'}</button>
         <button data-complete="${s.key}" class="${st.completed?'secondary':''}">${st.completed?'Mark incomplete':'Mark complete'}</button>
@@ -423,7 +325,7 @@ async function renderStages(proj){
       <div class="file-preview" id="preview-${s.key}"></div>
       <details open><summary><strong>Comments</strong></summary>
         <div id="cbox-${s.key}" class="list"></div>
-        <div class="stage-actions"><input id="cmt-${s.key}" placeholder="Write a comment…"/><button data-stucmt="${s.key}">Send</button></div>
+        <div id="res-${s.key}"></div><div class="stage-actions"><input id="cmt-${s.key}" placeholder="Write a comment…"/><button data-stucmt="${s.key}">Send</button></div>
       </details>
       <p class="muted"><strong>Worksheet status:</strong> <span id="st-status-${s.key}">${status}</span></p>
     `;
@@ -435,60 +337,12 @@ async function renderStages(proj){
   box.querySelectorAll('button[data-submit]').forEach(b=>b.onclick=()=>submitWorksheet(b.dataset.submit));
   box.querySelectorAll('button[data-stucmt]').forEach(btn=>btn.onclick=async()=>{ const key=btn.dataset.stucmt; const input=$('#cmt-'+key); await addComment(session.email, key, 'student', session.name, input.value.trim()); input.value=''; renderCommentsInto(session.email, key, 'cbox-'+key); });
   for (const s of STAGES){ await renderUploads(s.key); await renderPreviews(s.key); await renderCommentsInto(session.email, s.key, 'cbox-'+s.key); }
+  // Hydrate resource blocks
   for (const s of STAGES){ const el = document.getElementById('res-'+s.key); if (!el) continue; const html = await stageResourceBlock(s.key, res); el.innerHTML = html; }
+  (async ()=>{ // hydrate asset links after resource blocks
+  for (const el of document.querySelectorAll('[data-asset-link]')){ const id = el.getAttribute('data-asset-link'); const label = el.getAttribute('data-asset-label'); const href = await getAssetURL(id); if (href){ el.setAttribute('href', href); el.setAttribute('target','_blank'); el.setAttribute('rel','noopener'); el.textContent = label; } } })();
 }
 
-// Inline viewer open buttons
-document.addEventListener('click', async (e)=>{
-  const btn = e.target.closest('button[data-open-inline]');
-  if (!btn) return;
-  const key = btn.getAttribute('data-open-inline'); // e.g., 'dev-pdf', 'pre-word', 'pro-pptx'
-  const viewerId = 'viewer-' + key.split('-')[0];
-  const type = key.split('-')[1];
-  const res = await idb.get('settings','resources')||{};
-  const prefix = key.split('-')[0];
-  const box = document.getElementById(viewerId);
-  if (!box) return;
-  if (type==='pdf'){
-    const id = res[prefix+'PdfId']; const nm = res[prefix+'PdfName']||'PDF';
-    box.innerHTML = await pdfEmbedHTML(id, nm);
-  } else if (type==='word'){
-    const id = res[prefix+'WordId']; const nm = res[prefix+'WordName']||'Word';
-    const fallbackUrl = res[prefix]||'';
-    box.innerHTML = await docxPreviewBlock(id, nm, fallbackUrl);
-  } else if (type==='pptx'){
-    const id = res[prefix+'PptxId']; const nm = res[prefix+'PptxName']||'PPTX';
-    const fallbackUrl = res[prefix]||'';
-    box.innerHTML = await docxPreviewBlock(id, nm, fallbackUrl);
-  }
-});
-
-// Zip download handler
-document.addEventListener('click', async (e)=>{
-  const btn = e.target.closest('button[data-zip-stage]');
-  if (!btn) return;
-  const stageKey = btn.getAttribute('data-zip-stage');
-  const res = await idb.get('settings','resources')||{};
-  const prefix = stageKey==='development'?'dev': stageKey==='preproduction'?'pre': stageKey==='production'?'pro':'post';
-  const entries = [];
-  const add = async (id, nameFallback)=>{
-    if (!id) return;
-    const a = await idb.get('assets', id);
-    if (!a) return;
-    entries.push({ name: a.name || nameFallback, blob: a.blob });
-  };
-  await add(res[prefix+'WordId'], res[prefix+'WordName']||'word.docx');
-  await add(res[prefix+'PdfId'],  res[prefix+'PdfName'] ||'resource.pdf');
-  await add(res[prefix+'PptxId'], res[prefix+'PptxName']||'slides.pptx');
-  if (!entries.length){ alert('No resources to zip for this stage.'); return; }
-  const zipBlob = await buildZip(entries);
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(zipBlob);
-  a.download = prefix + '-resources.zip';
-  a.click();
-});
-
-// -------- Worksheet (student) --------
 async function openWorksheet(stage){
   const dlg=$('#worksheetDialog'); $('#wsTitle').textContent=`${STAGES.find(x=>x.key===stage).name} Worksheet`; $('#wsDesc').textContent='Fill the fields and click Save. When ready, submit from the dashboard.';
   const form=$('#wsForm'); form.innerHTML='';
@@ -527,7 +381,7 @@ async function renderPreviews(stage){
   }
 }
 
-// -------- Guardian --------
+// Guardian
 async function showGuardian(){
   show('guardian');
   const email=session.guardianOf; if(!email){ $('#guardianContent').innerHTML='<p>Please ask admin to link you to a student account.</p>'; return; }
@@ -577,3 +431,148 @@ function updateOverall(proj){ const pct=progressPercent(proj); $('#progressFill'
 function hash(str){ let h=0; for(let i=0;i<str.length;i++){ h=((h<<5)-h)+str.charCodeAt(i); h|=0; } return String(h); }
 function escapeHTML(s){ return String(s||'').replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]||c)); }
 function downloadFile(name, type, data){ const blob=new Blob([data],{type}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); }
+
+
+function embedVideoHTML(url){
+  if(!url) return '';
+  const u = url.trim();
+  try {
+    const yt = /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]{11})/.exec(u);
+    if (yt) return `<div class="card"><div class="file-preview"><iframe width="100%" height="360" src="https://www.youtube.com/embed/${yt[1]}" title="Video" frameborder="0" allowfullscreen></iframe></div></div>`;
+    const vm = /vimeo\.com\/(\d+)/.exec(u);
+    if (vm) return `<div class="card"><div class="file-preview"><iframe src="https://player.vimeo.com/video/${vm[1]}" width="100%" height="360" frameborder="0" allow="fullscreen" allowfullscreen></iframe></div></div>`;
+  } catch {}
+  // Fallback: plain link
+  return `<a class="secondary" href="${u}" target="_blank" rel="noopener">Open Video</a>`;
+}
+
+async function fileButtonHTML(id, label, ico){
+  const href = await getAssetURL(id);
+  if (!href) return '';
+  return `<a class="btn" href="${href}" target="_blank" rel="noopener"><span class="ico">${ico}</span><span>${label}</span></a>`;
+}
+function thumbHTML(kind, name){
+  const icon = kind==='word'?'🗒️': kind==='pdf'?'📄':'📊';
+  return `<span class="thumb"><span class="ico">${icon}</span><span class="fn">${name}</span></span>`;
+}
+async function stageResourceBlock(stageKey, settings){
+  const prefix = stageKey==='development'?'dev': stageKey==='preproduction'?'pre': stageKey==='production'?'pro':'post';
+  const wordId  = settings?.[prefix+'WordId'];  const wordName = settings?.[prefix+'WordName'];
+  const pdfId   = settings?.[prefix+'PdfId'];   const pdfName  = settings?.[prefix+'PdfName'];
+  const pptxId  = settings?.[prefix+'PptxId'];  const pptxName = settings?.[prefix+'PptxName'];
+  const videoUrl= settings?.[prefix+'VideoUrl'];
+  const extra   = settings?.[prefix] || '';
+
+  const pieces = [];
+  // Thumbnails row
+  const thumbs = [];
+  if (wordId) thumbs.push(thumbHTML('word', wordName||'Word file'));
+  if (pdfId)  thumbs.push(thumbHTML('pdf',  pdfName ||'PDF file'));
+  if (pptxId) thumbs.push(thumbHTML('pptx', pptxName||'PPTX file'));
+  if (thumbs.length) pieces.push(`<div class="resource-bar">${thumbs.join(' ')}</div>`);
+
+  // Buttons row
+  const btns = [];
+  if (videoUrl) btns.push(`${embedVideoHTML(videoUrl)}`);
+  if (wordId)  btns.push(await fileButtonHTML(wordId,  (wordName?('Word: '+wordName):'Open Word'), '🗒️'));
+  if (pdfId)   btns.push(await fileButtonHTML(pdfId,   (pdfName ?('PDF: '+pdfName) :'Open PDF'),  '📄'));
+  if (pptxId)  btns.push(await fileButtonHTML(pptxId,  (pptxName?('PPTX: '+pptxName):'Open PPTX'),'📊'));
+  if (extra.trim()) btns.push(`<a class="btn secondary" href="${extra.trim()}" target="_blank" rel="noopener"><span class="ico">🔗</span><span>INTO FILM Source</span></a>`);
+
+  // Zip button (gathers whatever exists)
+  const any = [wordId,pdfId,pptxId].filter(Boolean);
+  if (any.length){
+    const zipBtn = `<button class="btn btn-zip" data-zip-stage="${stageKey}"><span class="ico">🗂️</span><span>Download all stage resources (.zip)</span></button>`;
+    btns.push(zipBtn);
+  }
+
+  if (!btns.length && !thumbs.length) return '';
+  return `<div class="card"><strong>Stage Resources</strong><div class="resource-bar">${btns.join(' ')}</div></div>`;
+}
+
+
+// --- Minimal ZIP builder (stored/no compression) ---
+function crc32(buf){
+  let table = crc32.table;
+  if (!table){
+    table = new Uint32Array(256);
+    for (let i=0;i<256;i++){
+      let c=i;
+      for (let k=0;k<8;k++) c = (c & 1) ? (0xEDB88320 ^ (c>>>1)) : (c>>>1);
+      table[i]=c>>>0;
+    }
+    crc32.table = table;
+  }
+  let c = 0xFFFFFFFF;
+  const u8 = new Uint8Array(buf);
+  for (let i=0;i<u8.length;i++) c = table[(c ^ u8[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+function strToU8(s){ return new TextEncoder().encode(s); }
+function u32LE(n){ const b=new Uint8Array(4); new DataView(b.buffer).setUint32(0,n,true); return b; }
+function u16LE(n){ const b=new Uint8Array(2); new DataView(b.buffer).setUint16(0,n,true); return b; }
+
+async function buildZip(files){
+  // files: [{name, blob}]
+  const chunks = [];
+  let offset = 0;
+  const central = [];
+  for (const f of files){
+    const nameU8 = strToU8(f.name);
+    const buf = await f.blob.arrayBuffer();
+    const size = buf.byteLength;
+    const crc = crc32(buf);
+    // Local file header
+    chunks.push(strToU8('PK\x03\x04'));
+    chunks.push(u16LE(20)); // version needed
+    chunks.push(u16LE(0));  // flags
+    chunks.push(u16LE(0));  // method 0 = store
+    chunks.push(u16LE(0));  // time
+    chunks.push(u16LE(0));  // date
+    chunks.push(u32LE(crc));
+    chunks.push(u32LE(size));
+    chunks.push(u32LE(size));
+    chunks.push(u16LE(nameU8.length));
+    chunks.push(u16LE(0)); // extra len
+    chunks.push(nameU8);
+    chunks.push(new Uint8Array(buf));
+    central.push({nameU8, crc, size, offset});
+    offset += 30 + nameU8.length + size;
+  }
+  const startCD = offset;
+  for (const c of central){
+    chunks.push(strToU8('PK\x01\x02'));
+    chunks.push(u16LE(20)); // made by
+    chunks.push(u16LE(20)); // version needed
+    chunks.push(u16LE(0));  // flags
+    chunks.push(u16LE(0));  // method
+    chunks.push(u16LE(0));  // time
+    chunks.push(u16LE(0));  // date
+    chunks.push(u32LE(c.crc));
+    chunks.push(u32LE(c.size));
+    chunks.push(u32LE(c.size));
+    chunks.push(u16LE(c.nameU8.length));
+    chunks.push(u16LE(0)); // extra
+    chunks.push(u16LE(0)); // comment
+    chunks.push(u16LE(0)); // disk
+    chunks.push(u16LE(0)); // int attr
+    chunks.push(u32LE(0)); // ext attr
+    chunks.push(u32LE(c.offset));
+    chunks.push(c.nameU8);
+  }
+  const sizeCD = chunks.reduce((a,b)=>a + (b.byteLength||b.length||0), 0) - startCD;
+  const endCD = startCD + sizeCD;
+  // End of central directory
+  chunks.push(strToU8('PK\x05\x06'));
+  chunks.push(u16LE(0)); // disk
+  chunks.push(u16LE(0)); // start disk
+  chunks.push(u16LE(central.length));
+  chunks.push(u16LE(central.length));
+  chunks.push(u32LE(sizeCD));
+  chunks.push(u32LE(startCD));
+  chunks.push(u16LE(0)); // comment
+  const total = new Uint8Array(chunks.reduce((a,b)=>a+(b.byteLength||b.length||0),0));
+  let p=0;
+  for (const c of chunks){ total.set(c, p); p += (c.byteLength||c.length||0); }
+  return new Blob([total], {type:'application/zip'});
+}
