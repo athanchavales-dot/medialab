@@ -1215,3 +1215,68 @@ async function renderTeacherSubmissions(){
   });
   window.enhanceWorksheetVoice = enhanceWorksheetVoice;
 })();
+
+
+// --- Dialog enhancer: add top Close + [x] to all dialogs, hide old footers ---
+(function(){
+  function addHeader(dlg){
+    if (!dlg || dlg.querySelector('.dlg-header')) return;
+    var header = document.createElement('div');
+    header.className = 'dlg-header';
+
+    var btnX = document.createElement('button');
+    btnX.type = 'button';
+    btnX.className = 'close-btn btn-x';
+    btnX.setAttribute('aria-label', 'Close dialog');
+    btnX.textContent = '×';
+
+    var btnClose = document.createElement('button');
+    btnClose.type = 'button';
+    btnClose.className = 'close-btn';
+    btnClose.setAttribute('aria-label', 'Close dialog');
+    btnClose.textContent = 'Close';
+
+    function doClose(){
+      try { if (dlg.open) dlg.close('cancel'); else dlg.removeAttribute('open'); } catch(e){ dlg.removeAttribute('open'); }
+      // restore focus is already handled by existing focus trap if present
+    }
+    btnX.addEventListener('click', doClose);
+    btnClose.addEventListener('click', doClose);
+
+    header.appendChild(btnX);
+    header.appendChild(btnClose);
+
+    // Insert at very top of content
+    if (dlg.firstChild) dlg.insertBefore(header, dlg.firstChild);
+    else dlg.appendChild(header);
+
+    // Hide any existing bottom close/cancel buttons
+    var bottomCandidates = dlg.querySelectorAll('button[value="cancel"], button[aria-label^="Close"], button.close, .dialog-close');
+    bottomCandidates.forEach(function(b){
+      if (!header.contains(b)) b.classList.add('dlg-bottom-close');
+    });
+
+    // Ensure header's first close button is the first tabbable element
+    setTimeout(function(){ try { btnX.focus(); } catch(e){} }, 0);
+  }
+
+  function enhanceAll(){
+    document.querySelectorAll('dialog').forEach(addHeader);
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    enhanceAll();
+    // Observe future dialogs added dynamically
+    var mo = new MutationObserver(function(mutations){
+      mutations.forEach(function(m){
+        m.addedNodes && m.addedNodes.forEach(function(n){
+          if (n.nodeType === 1){
+            if (n.tagName && n.tagName.toLowerCase() === 'dialog') addHeader(n);
+            n.querySelectorAll && n.querySelectorAll('dialog').forEach(addHeader);
+          }
+        });
+      });
+    });
+    mo.observe(document.body, { childList:true, subtree:true });
+  });
+})();

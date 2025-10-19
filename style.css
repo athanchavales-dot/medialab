@@ -217,3 +217,42 @@ dialog[open]{border:none;border-radius:var(--radius);box-shadow:var(--shadow)}
 .voice-bar{ display:flex; gap:8px; align-items:center; justify-content:flex-end; margin:6px 0 10px; }
 .mic-btn[aria-pressed="true"]{ outline:3px solid var(--accent); }
 .voice-lang{ padding:6px 8px; border-radius:8px; border:1px solid #ddd; background:#fff; }
+
+
+/* --- Dialog header with top-close buttons --- */
+dialog .dlg-header{
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 8px;
+  background: #fff;
+  border-bottom: 1px solid #eee;
+  z-index: 2;
+}
+dialog .close-btn{
+  background: #f5f5f5;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+dialog .close-btn:hover, dialog .close-btn:focus{
+  background: #ffe680;
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+dialog .btn-x{
+  width: 36px;
+  height: 36px;
+  display: inline-grid;
+  place-items: center;
+  font-size: 1.2rem;
+  line-height: 1;
+  padding: 0;
+}
+/* Hide old bottom-close buttons once header is injected */
+.dlg-bottom-close{ display: none !important; }
