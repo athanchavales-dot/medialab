@@ -453,11 +453,11 @@ function stageResourceBlock(stageKey, settings){
   const videoUrl= settings?.[prefix+'VideoUrl'];
   const extra   = settings?.[prefix] || '';
 
-  if (videoUrl) items.push(`<div>${embedVideoHTML(videoUrl)}</div>`);
-  if (wordId)  items.push(`<a class="secondary" data-asset-link="${wordId}"  data-asset-label="${wordName||'Open Word'}">Open ${wordName||'Word'}</a>`);
-  if (pdfId)   items.push(`<a class="secondary" data-asset-link="${pdfId}"   data-asset-label="${pdfName||'Open PDF'}">Open ${pdfName||'PDF'}</a>`);
-  if (pptxId)  items.push(`<a class="secondary" data-asset-link="${pptxId}"  data-asset-label="${pptxName||'Open PPTX'}">Open ${pptxName||'PPTX'}</a>`);
-  if (extra.trim()) items.push(`<a class="secondary" href="${extra.trim()}" target="_blank" rel="noopener">Extra Link</a>`);
+  if (videoUrl) items.push(`${embedVideoHTML(videoUrl)}`);
+  if (wordId)  items.push(`<a class="secondary" data-asset-link="${wordId}"  data-asset-label="${(wordName?('Word: '+wordName):'Open Word')}">${(wordName?('Word: '+wordName):'Open Word')}</a>`);
+  if (pdfId)   items.push(`<a class="secondary" data-asset-link="${pdfId}"   data-asset-label="${(pdfName?('PDF: '+pdfName):'Open PDF')}">${(pdfName?('PDF: '+pdfName):'Open PDF')}</a>`);
+  if (pptxId)  items.push(`<a class="secondary" data-asset-link="${pptxId}"  data-asset-label="${(pptxName?('PPTX: '+pptxName):'Open PPTX')}">${(pptxName?('PPTX: '+pptxName):'Open PPTX')}</a>`);
+  if (extra.trim()) items.push(`<a class="secondary" href="${extra.trim()}" target="_blank" rel="noopener">INTO FILM Source</a>`);
 
   if (!items.length) return '';
   return `<div class="card"><strong>Stage Resources</strong><div class="stage-actions">${items.join(' ')}</div></div>`;
