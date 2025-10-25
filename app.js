@@ -1299,70 +1299,63 @@ async function renderTeacherSubmissions(){
     rec.onend = function(){ stopDictate(id); };
     try{ rec.start(); }catch(err){ stopDictate(id); }
   }
-  async function enhanceWorksheetVoice() {
-  const dlg = document.getElementById('worksheetDialog');
-  if (!dlg) return;
+(function(){
+  function enhanceWorksheetVoice(){
+    const dlg = document.getElementById('worksheetDialog');
+    if (!dlg) return;
 
-  const areas = dlg.querySelectorAll('textarea');
-  for (let i = 0; i < areas.length; i++) {
-    const ta = areas[i];
-    if (
-      ta.nextElementSibling &&
-      ta.nextElementSibling.classList &&
-      ta.nextElementSibling.classList.contains('voice-bar')
-    ) continue;
+    const areas = dlg.querySelectorAll('textarea');
+    for (let i = 0; i < areas.length; i++) {
+      const ta = areas[i];
+      if (
+        ta.nextElementSibling &&
+        ta.nextElementSibling.classList &&
+        ta.nextElementSibling.classList.contains('voice-bar')
+      ) continue;
 
-    if (!ta.id) {
-      const label = ta.getAttribute('aria-label') ||
-                    ta.getAttribute('placeholder') ||
-                    ('field_' + i);
-      ta.id = ('ws_' + label).toLowerCase().replace(/[^a-z0-9_]+/g, '_');
-    }
+      if (!ta.id) {
+        const label = ta.getAttribute('aria-label') ||
+                      ta.getAttribute('placeholder') ||
+                      ('field_' + i);
+        ta.id = ('ws_' + label).toLowerCase().replace(/[^a-z0-9_]+/g, '_');
+      }
 
-    const bar = document.createElement('div');
-    bar.className = 'voice-bar';
-    bar.setAttribute('data-for', ta.id);
+      const bar = document.createElement('div');
+      bar.className = 'voice-bar';
+      bar.setAttribute('data-for', ta.id);
 
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'voice-btn';
-    btn.setAttribute('data-voice-target', ta.id);
-    btn.setAttribute('aria-pressed', 'false');
-    btn.setAttribute('aria-label', 'Start voice typing for this field');
-    btn.textContent = '🎙 Dictate';
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'voice-btn';
+      btn.setAttribute('data-voice-target', ta.id);
+      btn.setAttribute('aria-pressed', 'false');
+      btn.setAttribute('aria-label', 'Start voice typing for this field');
+      btn.textContent = '🎙 Dictate';
 
-    bar.appendChild(btn);
-    ta.parentNode.insertBefore(bar, ta.nextSibling);
-  }
-}
-
-document.addEventListener('click', function (e) {
-  const t = e.target;
-  if (t && t.matches('[data-voice-target]')) {
-    const id = t.getAttribute('data-voice-target');
-    const lang = 'en-GB';
-    if (t.getAttribute('aria-pressed') === 'true') {
-      stopDictate(id);
-    } else {
-      Object.keys(active).forEach(stopDictate);
-      t.setAttribute('aria-pressed', 'true');
-      startDictate(id, lang);
+      bar.appendChild(btn);
+      ta.parentNode.insertBefore(bar, ta.nextSibling);
     }
   }
-});
 
-    var t = e.target;
+  document.addEventListener('click', function(e){
+    const t = e.target;
     if (t && t.matches('[data-voice-target]')){
-      var id = t.getAttribute('data-voice-target');
-      var langSel = t.closest('.voice-bar') ? t.closest('.voice-bar').querySelector('.voice-lang') : null;
-      var lang = langSel ? langSel.value : 'en-GB';
-      if (t.getAttribute('aria-pressed') === 'true'){ stopDictate(id); }
-      else { Object.keys(active).forEach(stopDictate); t.setAttribute('aria-pressed','true'); startDictate(id, lang); }
+      const id = t.getAttribute('data-voice-target');
+      const lang = 'en-GB';
+      if (t.getAttribute('aria-pressed') === 'true'){ 
+        stopDictate(id); 
+      } else { 
+        Object.keys(active).forEach(stopDictate); 
+        t.setAttribute('aria-pressed','true'); 
+        startDictate(id, lang); 
+      }
     }
   });
+
   document.addEventListener('DOMContentLoaded', function(){
-    var dlg = document.getElementById('worksheetDialog'); if (!dlg) return;
-    var mo = new MutationObserver(function(muts){
+    const dlg = document.getElementById('worksheetDialog'); 
+    if (!dlg) return;
+    const mo = new MutationObserver(function(muts){
       muts.forEach(function(m){
         if (m.attributeName === 'open' && dlg.open){ enhanceWorksheetVoice(); }
       });
@@ -1370,6 +1363,7 @@ document.addEventListener('click', function (e) {
     mo.observe(dlg, { attributes:true });
     if (dlg.open) enhanceWorksheetVoice();
   });
+
   window.enhanceWorksheetVoice = enhanceWorksheetVoice;
 })();
 
