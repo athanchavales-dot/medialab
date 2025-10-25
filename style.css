@@ -263,3 +263,108 @@ n.ws-list li{margin-bottom:.4rem;}\
 n.ws-row{display:grid;gap:.5rem;margin-top:1rem;font-size:.9rem;}\
 n.ws-label{font-weight:600;font-size:.85rem;color:var(--fg,#111);}\
 n.ws-input{width:100%;font-family:inherit;font-size:.9rem;line-height:1.4;border:1px solid var(--border,#ccc);border-radius:.5rem;padding:.6rem .7rem;min-height:3rem;resize:vertical;}\n
+
+/* --- Worksheet dialog modern cards --- */
+.ws-card{
+  background:#fff;
+  border:2px solid #e5e7eb;
+  border-radius:1rem;
+  padding:1rem 1rem 0.75rem;
+  box-shadow:0 20px 40px -10px rgba(0,0,0,0.08);
+  margin-bottom:1rem;
+}
+.ws-card-head{
+  margin:0 0 .5rem;
+  font-size:1rem;
+  font-weight:600;
+  color:#111827;
+  display:flex;
+  align-items:center;
+  gap:.5rem;
+  position:relative;
+}
+.ws-card-head::before{
+  content:'';
+  width:.5rem;
+  height:.5rem;
+  border-radius:999px;
+  background:#1f2937;
+  box-shadow:0 0 0 4px rgba(31,41,55,0.15);
+}
+.ws-card-list{
+  margin:0 0 .75rem;
+  padding-left:1.25rem;
+  font-size:.9rem;
+  line-height:1.4;
+  color:#374151;
+}
+.ws-card-list li{
+  margin-bottom:.4rem;
+}
+.ws-field{
+  display:grid;
+  gap:.5rem;
+  margin-bottom:1rem;
+}
+.ws-label{
+  font-size:.85rem;
+  font-weight:600;
+  color:#111827;
+  line-height:1.3;
+}
+.ws-label .req{
+  color:#b91c1c;
+}
+.ws-input{
+  width:100%;
+  border-radius:.5rem;
+  border:1px solid #d1d5db;
+  font-family:inherit;
+  font-size:.9rem;
+  line-height:1.4;
+  padding:.6rem .7rem;
+  min-height:3rem;
+  resize:vertical;
+  background:#fff;
+  color:#111827;
+}
+.voice-bar{
+  display:flex;
+  gap:.5rem;
+}
+.voice-btn{
+  background:#fde047;
+  border:2px solid #000;
+  border-radius:.5rem;
+  font-size:.8rem;
+  font-weight:600;
+  line-height:1.2;
+  padding:.5rem .75rem;
+  cursor:pointer;
+  box-shadow:0 12px 24px rgba(0,0,0,0.15);
+}
+.ws-actions{
+  display:flex;
+  justify-content:flex-start;
+  gap:.75rem;
+  flex-wrap:wrap;
+  margin-top:.5rem;
+  margin-bottom:1rem;
+}
+.save-draft-btn{
+  appearance:none;
+  background:#1f2937;
+  color:#fff;
+  border:1px solid #1f2937;
+  border-radius:.5rem;
+  font-size:.8rem;
+  font-weight:600;
+  line-height:1.2;
+  padding:.6rem .9rem;
+  cursor:pointer;
+  box-shadow:0 14px 30px rgba(0,0,0,0.2);
+}
+.save-draft-btn:focus{
+  outline:none;
+  box-shadow:0 0 0 3px rgba(0,0,0,0.25);
+}

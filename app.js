@@ -86,7 +86,7 @@ const WORKSHEETS = {
   ],
   preproduction: [
     { id:'teamRoles', label:'Who is in your team and what is their role? (Director / Camera / Actor / Sound)', type:'textarea', required:true },
-    { id:'storyboard', label:'Storyboard overview (describe what happens in each scene)', type:'textarea', required:true },
+    { id:'storyboard', label:'Storyboard overview (what happens in each scene?)', type:'textarea', required:true },
     { id:'propsList', label:'Props and equipment needed', type:'textarea', required:false },
     { id:'scriptNotes', label:'Short script / actor notes', type:'textarea', required:false },
     { id:'checkGear', label:'Is the camera + tripod ready? Any issues?', type:'textarea', required:false },
@@ -347,15 +347,23 @@ document.addEventListener('change', async (e)=>{
   const users=await idb.getAll('users'); const u=users.find(x=>x.name===name); if(!u) return;
   const p=await idb.get('projects', u.email); p.stages[stageKey].rubric=p.stages[stageKey].rubric||{}; p.stages[stageKey].rubric[crit]=Number(sel.value); await idb.put('projects', p);
 });
-document.addEventListener('click', async (e)=>{
-  const btn=e.target.closest('button[data-calc]'); if(!btn) return;
-  const stageKey=btn.dataset.calc; const name=$('#studentModalTitle').textContent.replace('Review: ','').trim();
-  const users=await idb.getAll('users'); const u=users.find(x=>x.name===name); if(!u) return;
-  const p=await idb.get('projects', u.email); const st=p.stages[stageKey]; const total=Object.values(st.rubric||{}).reduce((a,b)=>a+b,0);
-  st.score=total; st.badge= total>=10?'Gold ⭐': total>=7?'Silver 🥈': total>=4?'Bronze 🥉':''; await idb.put('projects', p);
-  $('#rubric-total-'+stageKey).textContent=String(total); $('#rubric-badge-'+stageKey).textContent=st.badge||'—';
-});
+document.addEventListener('click', function (e) {
+  const t = e.target;
+  if (!t || !t.matches('[data-voice-target]')) return;
 
+  const id = t.getAttribute('data-voice-target');
+  const lang = 'en-GB';
+
+  if (t.getAttribute('aria-pressed') === 'true') {
+    stopDictate(id);
+  } else {
+    if (typeof active === 'object' && active) {
+      Object.keys(active).forEach(stopDictate);
+    }
+    t.setAttribute('aria-pressed','true');
+    startDictate(id, lang);
+  }
+});
 async function addComment(email, stage, authorRole, author, text){ if(!text)return; const rec={id:crypto.randomUUID(), email, stage, authorRole, author, text, ts:Date.now()}; await idb.put('comments', rec); }
 async function renderCommentsInto(email, stage, elemId){
   const all=await idb.getAll('comments'); const list=all.filter(c=>c.email===email && c.stage===stage).sort((a,b)=>a.ts-b.ts);
@@ -420,14 +428,18 @@ async function renderStages(proj){
 }
 
 async function openWorksheet(stage){
-  const dlg=$('#worksheetDialog'); 
-  const titleMap={
+  const dlg = document.getElementById('worksheetDialog');
+  const form = document.getElementById('wsForm');
+  const titleEl = document.getElementById('wsTitle');
+  const descEl = document.getElementById('wsDesc');
+
+  const titleMap = {
     development:'Development Worksheet – Create Your Idea',
     preproduction:'Pre-Production Worksheet – Plan Your Film',
     production:'Production Worksheet – Filming Log',
     postproduction:'Post-Production Worksheet – Edit and Reflect'
   };
-  const objMap={
+  const objectivesMap = {
     development:[
       'Understand what makes a good story or idea.',
       'Create and share a simple film concept.'
@@ -447,7 +459,7 @@ async function openWorksheet(stage){
       'Reflect on what was learned.'
     ]
   };
-  const taskMap={
+  const tasksMap = {
     development:[
       'Think of an idea for your short film (e.g. friendship, school life, challenge).',
       'Write your main idea below or draw it in pictures.',
@@ -478,107 +490,151 @@ async function openWorksheet(stage){
     ]
   };
 
-  $('#wsTitle').textContent = titleMap[stage] || 'Worksheet';
-  $('#wsDesc').textContent = 'Fill in all required (*) questions. Your answers save locally.';
+  titleEl.textContent = titleMap[stage] || 'Worksheet';
+  descEl.textContent = 'Fill in your answers. Your work saves in this browser.';
 
-  const form=$('#wsForm'); 
-  form.innerHTML='';
+  // clear form content
+  form.innerHTML = '';
 
-  // Learning Objectives section
-  const loSec=document.createElement('section');
-  loSec.className='ws-block';
-  loSec.innerHTML = '<h4>Learning Objectives</h4><ul class="ws-list">'+
-    objMap[stage].map(o=>`<li>${o}</li>`).join('')+
-    '</ul>';
-  form.appendChild(loSec);
+  // helper to build a "card" section with heading + list
+  function renderListCard(heading, items){
+    const card = document.createElement('section');
+    card.className = 'ws-card';
+    const h = document.createElement('h3');
+    h.className = 'ws-card-head';
+    h.textContent = heading;
+    card.appendChild(h);
 
-  // Your Tasks section
-  const taskSec=document.createElement('section');
-  taskSec.className='ws-block';
-  taskSec.innerHTML = '<h4>Your Tasks</h4><ul class="ws-list">'+
-    taskMap[stage].map(t=>`<li>${t}</li>`).join('')+
-    '</ul>';
-  form.appendChild(taskSec);
+    const ul = document.createElement('ul');
+    ul.className = 'ws-card-list';
+    for (const it of items){
+      const li=document.createElement('li');
+      li.textContent = it;
+      ul.appendChild(li);
+    }
+    card.appendChild(ul);
+    return card;
+  }
 
-  // Reflection / Feedback (fields)
-  const refWrap=document.createElement('section');
-  refWrap.className='ws-block';
-  refWrap.innerHTML='<h4>Reflection / Feedback</h4>';
-  form.appendChild(refWrap);
+  // Learning Objectives card
+  form.appendChild(
+    renderListCard('Learning Objectives', objectivesMap[stage] || [])
+  );
+  // Your Tasks card
+  form.appendChild(
+    renderListCard('Your Tasks', tasksMap[stage] || [])
+  );
 
-  const existing=await getSubmission(session.email, stage);
+  // Reflection / Feedback card (interactive fields)
+  const refCard = document.createElement('section');
+  refCard.className = 'ws-card';
+  const refHead = document.createElement('h3');
+  refHead.className = 'ws-card-head';
+  refHead.textContent = 'Reflection / Feedback';
+  refCard.appendChild(refHead);
 
+  const existing = await getSubmission(session.email, stage);
   for (const field of WORKSHEETS[stage]){
-    const val=existing?.data?.[field.id]||'';
-    const row=document.createElement('label');
-    row.className='ws-row';
-    if(field.type==='textarea'){
-      row.innerHTML=`<span class="ws-label">${field.label}${field.required?' *':''}</span>
-        <textarea class="ws-input" id="${field.id}" ${field.required?'required':''}
-        aria-label="${field.label}">${val}</textarea>`;
-    }else{
-      row.innerHTML=`<span class="ws-label">${field.label}${field.required?' *':''}</span>
-        <input class="ws-input" type="text" id="${field.id}" value="${val}"
-        ${field.required?'required':''} aria-label="${field.label}"/>`;
+    const val = existing && existing.data ? (existing.data[field.id] || '') : '';
+    const row = document.createElement('div');
+    row.className = 'ws-field';
+
+    const labelEl = document.createElement('label');
+    labelEl.className = 'ws-label';
+    labelEl.setAttribute('for', field.id);
+    labelEl.innerHTML = field.label + (field.required ? ' <span class="req">*</span>' : '');
+    row.appendChild(labelEl);
+
+    let inputEl;
+    if (field.type === 'textarea'){
+      inputEl = document.createElement('textarea');
+      inputEl.className = 'ws-input';
+      inputEl.id = field.id;
+      inputEl.required = !!field.required;
+      inputEl.value = val;
+      inputEl.setAttribute('aria-label', field.label);
+    } else {
+      inputEl = document.createElement('input');
+      inputEl.type = 'text';
+      inputEl.className = 'ws-input';
+      inputEl.id = field.id;
+      inputEl.required = !!field.required;
+      inputEl.value = val;
+      inputEl.setAttribute('aria-label', field.label);
     }
-    refWrap.appendChild(row);
+
+    row.appendChild(inputEl);
+
+    // voice dictate button (no language dropdown)
+    const voiceBar = document.createElement('div');
+    voiceBar.className = 'voice-bar';
+    const voiceBtn = document.createElement('button');
+    voiceBtn.type = 'button';
+    voiceBtn.className = 'voice-btn';
+    voiceBtn.setAttribute('data-voice-target', field.id);
+    voiceBtn.setAttribute('aria-pressed', 'false');
+    voiceBtn.textContent = '🎙 Dictate';
+    voiceBar.appendChild(voiceBtn);
+    row.appendChild(voiceBar);
+
+    refCard.appendChild(row);
   }
+  form.appendChild(refCard);
 
-  const save=document.createElement('button'); 
-  save.type='button'; 
-  save.textContent='Save Draft'; 
-  save.className='secondary';
-  save.onclick = async () => {
-  if (!session || !session.email) {
-    alert('Please sign in first so we can save your work.');
-    return;
-  }
+  // Save Draft button row
+  const controls = document.createElement('div');
+  controls.className = 'ws-actions';
 
-  const data = {};
-  for (const field of WORKSHEETS[stage]) {
-    const el = document.getElementById(field.id);
-    data[field.id] = el ? el.value.trim() : '';
-  }
+  const saveBtn = document.createElement('button');
+  saveBtn.type = 'button';
+  saveBtn.className = 'save-draft-btn';
+  saveBtn.textContent = 'Save Draft';
+  controls.appendChild(saveBtn);
 
-  let sub = await getSubmission(session.email, stage);
-  if (!sub) {
-    sub = {
-      id: session.email + '::' + stage,
-      email: session.email,
-      stage: stage,
-      data: {},
-      status: 'draft',
-      ts: Date.now()
-    };
-  }
+  form.appendChild(controls);
 
-  sub.data = data;
-  sub.ts = Date.now();
-
-  await idb.put('submissions', sub);
-
+  // accessibility live region
   const live = document.getElementById('liveRegion');
-  if (live) live.textContent = 'Worksheet saved.';
+  if (live) live.textContent = '';
 
-  const latest = await getSubmission(session.email, stage);
-  const statusNow = latest && latest.status ? latest.status : 'draft';
-  const badge = document.getElementById('st-status-' + stage);
-  if (badge) badge.textContent = statusNow;
-};
-    for (const field of WORKSHEETS[stage]){
-      const el=document.getElementById(field.id);
-      data[field.id]=el?el.value.trim():'';
+  // attach save logic with robust IndexedDB write
+  saveBtn.onclick = async () => {
+    if (!session || !session.email){
+      alert('Please sign in first so we can save your work.');
+      return;
     }
-    let sub=await getSubmission(session.email, stage);
-    if(!sub){ sub={ email:session.email, stage, data:{}, status:'draft', ts:Date.now() }; }
-    sub.data=data; sub.ts=Date.now();
+
+    // collect answers
+    const data = {};
+    for (const field of WORKSHEETS[stage]){
+      const el = document.getElementById(field.id);
+      data[field.id] = el ? el.value.trim() : '';
+    }
+
+    let sub = await getSubmission(session.email, stage);
+    if (!sub){
+      sub = {
+        id: session.email + '::' + stage,
+        email: session.email,
+        stage: stage,
+        data: {},
+        status: 'draft',
+        ts: Date.now()
+      };
+    }
+
+    sub.data = data;
+    sub.ts = Date.now();
+
     await idb.put('submissions', sub);
-    $('#liveRegion').textContent='Worksheet saved.';
-    renderStages(await idb.get('projects', session.email));
-    const status=(await getSubmission(session.email, stage))?.status||'draft';
-    $('#st-status-'+stage).textContent=status;
+
+    if (live) live.textContent = 'Worksheet saved.';
+
+    const latest = await getSubmission(session.email, stage);
+    const statusNow = latest && latest.status ? latest.status : 'draft';
+    const badge = document.getElementById('st-status-' + stage);
+    if (badge) badge.textContent = statusNow;
   };
-  form.appendChild(save);
 
   dlg.showModal();
 }
@@ -1240,20 +1296,23 @@ document.addEventListener('DOMContentLoaded', function(){ initAccordionSteps(); 
     if (btn) btn.setAttribute('aria-pressed', 'false');
   }
 
-  document.addEventListener('click', function (e) {
-  const t = e.target;
-  if (t && t.matches('[data-voice-target]')) {
-    const id = t.getAttribute('data-voice-target');
-    const lang = 'en-GB';
-    if (t.getAttribute('aria-pressed') === 'true') {
-      stopDictate(id);
-    } else {
-      Object.keys(active).forEach(stopDictate);
-      t.setAttribute('aria-pressed', 'true');
-      startDictate(id, lang);
+  document.addEventListener('click', function(e){
+    var t = e.target;
+    if (t && t.matches('[data-voice-target]')){
+      var id = t.getAttribute('data-voice-target');
+      var wrap = t.closest('.voice-bar');
+      var langSel = wrap ? wrap.querySelector('.voice-lang') : null;
+      var lang = langSel ? langSel.value : 'en-GB';
+      if (t.getAttribute('aria-pressed') === 'true'){
+        stopDictate(id);
+      } else {
+        // stop any other active
+        Object.keys(active).forEach(stopDictate);
+        t.setAttribute('aria-pressed', 'true');
+        startDictate(id, lang);
+      }
     }
-  }
-});
+  });
 })();
 
 
