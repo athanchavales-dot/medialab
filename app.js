@@ -1299,63 +1299,39 @@ async function renderTeacherSubmissions(){
     rec.onend = function(){ stopDictate(id); };
     try{ rec.start(); }catch(err){ stopDictate(id); }
   }
-(function(){
-  function enhanceWorksheetVoice(){
-    const dlg = document.getElementById('worksheetDialog');
-    if (!dlg) return;
-
-    const areas = dlg.querySelectorAll('textarea');
-    for (let i = 0; i < areas.length; i++) {
-      const ta = areas[i];
-      if (
-        ta.nextElementSibling &&
-        ta.nextElementSibling.classList &&
-        ta.nextElementSibling.classList.contains('voice-bar')
-      ) continue;
-
-      if (!ta.id) {
-        const label = ta.getAttribute('aria-label') ||
-                      ta.getAttribute('placeholder') ||
-                      ('field_' + i);
-        ta.id = ('ws_' + label).toLowerCase().replace(/[^a-z0-9_]+/g, '_');
+  async function enhanceWorksheetVoice(){
+    var dlg = document.getElementById('worksheetDialog'); if (!dlg) return;
+    var areas = dlg.querySelectorAll('textarea');
+    for (var i=0;i<areas.length;i++){
+      var ta = areas[i];
+      if (ta.nextElementSibling && ta.nextElementSibling.classList && ta.nextElementSibling.classList.contains('voice-bar')) continue;
+      if (!ta.id){
+        var label = ta.getAttribute('aria-label') || ta.getAttribute('placeholder') || ('field_'+i);
+        ta.id = ('ws_' + label).toLowerCase().replace(/[^a-z0-9_]+/g,'_');
       }
-
-      const bar = document.createElement('div');
-      bar.className = 'voice-bar';
-      bar.setAttribute('data-for', ta.id);
-
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'voice-btn';
-      btn.setAttribute('data-voice-target', ta.id);
-      btn.setAttribute('aria-pressed', 'false');
-      btn.setAttribute('aria-label', 'Start voice typing for this field');
-      btn.textContent = '🎙 Dictate';
-
-      bar.appendChild(btn);
+      var bar = document.createElement('div'); bar.className='voice-bar'; bar.setAttribute('data-for', ta.id);
+      var btn = document.createElement('button'); btn.type='button'; btn.className='btn mic-btn'; btn.setAttribute('data-voice-target', ta.id); btn.setAttribute('aria-pressed','false'); btn.setAttribute('aria-label','Start voice typing for this field'); btn.textContent='🎙 Dictate';
+      var sel = document.createElement('select'); sel.className='voice-lang'; sel.setAttribute('aria-label','Voice language');
+      var optUK = document.createElement('option'); optUK.value='en-GB'; optUK.textContent='English (UK)';
+      var optUS = document.createElement('option'); optUS.value='en-US'; optUS.textContent='English (US)';
+      sel.appendChild(optUK); sel.appendChild(optUS);
+      bar.appendChild(btn); bar.appendChild(sel);
       ta.parentNode.insertBefore(bar, ta.nextSibling);
     }
   }
-
   document.addEventListener('click', function(e){
-    const t = e.target;
+    var t = e.target;
     if (t && t.matches('[data-voice-target]')){
-      const id = t.getAttribute('data-voice-target');
-      const lang = 'en-GB';
-      if (t.getAttribute('aria-pressed') === 'true'){ 
-        stopDictate(id); 
-      } else { 
-        Object.keys(active).forEach(stopDictate); 
-        t.setAttribute('aria-pressed','true'); 
-        startDictate(id, lang); 
-      }
+      var id = t.getAttribute('data-voice-target');
+      var langSel = t.closest('.voice-bar') ? t.closest('.voice-bar').querySelector('.voice-lang') : null;
+      var lang = langSel ? langSel.value : 'en-GB';
+      if (t.getAttribute('aria-pressed') === 'true'){ stopDictate(id); }
+      else { Object.keys(active).forEach(stopDictate); t.setAttribute('aria-pressed','true'); startDictate(id, lang); }
     }
   });
-
   document.addEventListener('DOMContentLoaded', function(){
-    const dlg = document.getElementById('worksheetDialog'); 
-    if (!dlg) return;
-    const mo = new MutationObserver(function(muts){
+    var dlg = document.getElementById('worksheetDialog'); if (!dlg) return;
+    var mo = new MutationObserver(function(muts){
       muts.forEach(function(m){
         if (m.attributeName === 'open' && dlg.open){ enhanceWorksheetVoice(); }
       });
@@ -1363,7 +1339,6 @@ async function renderTeacherSubmissions(){
     mo.observe(dlg, { attributes:true });
     if (dlg.open) enhanceWorksheetVoice();
   });
-
   window.enhanceWorksheetVoice = enhanceWorksheetVoice;
 })();
 
