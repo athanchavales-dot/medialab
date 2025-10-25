@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Production Worksheet – Oak Hill Media Lab</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body data-page="production">
+
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="index.html">
+      <div class="brand-logo"><div>📽</div></div>
+      <div>Oak Hill Media Lab</div>
+    </a>
+
+    <nav class="nav-links">
+      <a href="development.html">Development</a>
+      <a href="preproduction.html">Pre-Production</a>
+      <a class="stage-active" href="production.html">Production</a>
+      <a href="postproduction.html">Post-Production</a>
+    </nav>
+  </div>
+</header>
+
+<main class="page-wrap">
+
+  <section class="page-head">
+    <div class="page-head-left">
+      <h1>
+        <span>Production Worksheet – Filming Log</span>
+        <span class="stage-pill">Stage: Production</span>
+      </h1>
+    </div>
+
+    <div class="meta-fields">
+      <div class="meta-field">
+        <label for="studentName">Student Name</label>
+        <input data-save name="studentName" id="studentName" type="text" placeholder="Your name" />
+      </div>
+      <div class="meta-field">
+        <label for="dateField">Date</label>
+        <input data-save name="dateField" id="dateField" type="text" placeholder="25/10/2025" />
+      </div>
+    </div>
+  </section>
+
+  <section class="section-card">
+    <h2 class="section-title">Learning Objectives</h2>
+    <ul class="task-list">
+      <li>Follow a plan to record scenes.</li>
+      <li>Operate camera, sound, and lighting safely.</li>
+      <li>Work as part of a film crew.</li>
+    </ul>
+  </section>
+
+  <section class="section-card">
+    <h2 class="section-title">Your Tasks</h2>
+    <ul class="task-list">
+      <li>Set up your camera and tripod safely.</li>
+      <li>Film each scene following your storyboard.</li>
+      <li>Check sound levels before recording.</li>
+      <li>Work as a team – help each other.</li>
+      <li>Review your footage after each session.</li>
+    </ul>
+
+    <div class="form-block">
+
+      <div class="form-row">
+        <label for="setupNotes">Camera / tripod setup notes:</label>
+        <textarea data-save name="setupNotes" id="setupNotes" placeholder="Tripod height, safety checks, location..."></textarea>
+      </div>
+
+      <div class="form-row">
+        <label for="sceneLog">Filming log (which scenes did you record?):</label>
+        <textarea data-save name="sceneLog" id="sceneLog" placeholder="Scene 1: filmed in classroom...&#10;Scene 2: filmed outside..."></textarea>
+      </div>
+
+      <div class="form-row">
+        <label for="soundCheck">Sound check notes (volume / background noise):</label>
+        <textarea data-save name="soundCheck" id="soundCheck" placeholder="Mic test OK / Wind noise / etc."></textarea>
+      </div>
+
+      <div class="form-row">
+        <label for="teamworkNotes">Teamwork notes (who helped, what went well as a crew?):</label>
+        <textarea data-save name="teamworkNotes" id="teamworkNotes"></textarea>
+      </div>
+
+      <div class="drawing-block">
+        <label>Upload a still image from filming (optional)</label>
+        <div class="drawing-upload-area">
+          <div class="drawing-upload-area-inner">
+            <strong>Upload on-set photo</strong>
+            <div>Take a behind-the-scenes photo or choose a frame from your footage.</div>
+            <input
+              data-save
+              type="file"
+              accept="image/*"
+              name="btsImage"
+              id="btsImage"
+              data-preview-target="#btsPreview"
+              style="cursor:pointer;"
+            />
+          </div>
+        </div>
+        <img id="btsPreview" class="drawing-preview" alt="Behind the scenes preview" />
+      </div>
+
+    </div>
+  </section>
+
+  <section class="section-card">
+    <h2 class="section-title">Reflection / Feedback</h2>
+
+    <div class="form-block">
+      <div class="form-row">
+        <label for="prodJob">What was your job during filming?</label>
+        <textarea data-save name="prodJob" id="prodJob"></textarea>
+      </div>
+
+      <div class="form-row">
+        <label for="prodGood">What went well while filming?</label>
+        <textarea data-save name="prodGood" id="prodGood"></textarea>
+      </div>
+
+      <div class="form-row">
+        <label for="prodImprove">What could your team improve next time?</label>
+        <textarea data-save name="prodImprove" id="prodImprove"></textarea>
+      </div>
+    </div>
+
+    <div class="action-row">
+      <button class="btn" id="exportBtn" type="button">Export My Work (.json)</button>
+      <div class="save-status"> </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  Oak Hill Media Lab · Production Stage
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

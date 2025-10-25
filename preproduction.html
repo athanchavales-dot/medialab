@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Pre-Production Worksheet – Oak Hill Media Lab</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body data-page="preproduction">
+
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="index.html">
+      <div class="brand-logo"><div>📽</div></div>
+      <div>Oak Hill Media Lab</div>
+    </a>
+
+    <nav class="nav-links">
+      <a href="development.html">Development</a>
+      <a class="stage-active" href="preproduction.html">Pre-Production</a>
+      <a href="production.html">Production</a>
+      <a href="postproduction.html">Post-Production</a>
+    </nav>
+  </div>
+</header>
+
+<main class="page-wrap">
+
+  <section class="page-head">
+    <div class="page-head-left">
+      <h1>
+        <span>Pre-Production Worksheet – Plan Your Film</span>
+        <span class="stage-pill">Stage: Pre-Production</span>
+      </h1>
+    </div>
+
+    <div class="meta-fields">
+      <div class="meta-field">
+        <label for="studentName">Student Name</label>
+        <input data-save name="studentName" id="studentName" type="text" placeholder="Your name" />
+      </div>
+      <div class="meta-field">
+        <label for="dateField">Date</label>
+        <input data-save name="dateField" id="dateField" type="text" placeholder="25/10/2025" />
+      </div>
+    </div>
+  </section>
+
+  <section class="section-card">
+    <h2 class="section-title">Learning Objectives</h2>
+    <ul class="task-list">
+      <li>Plan scenes, roles, and resources needed for filming.</li>
+      <li>Learn about storyboards, shot lists, and scripts.</li>
+    </ul>
+  </section>
+
+  <section class="section-card">
+    <h2 class="section-title">Your Tasks</h2>
+    <ul class="task-list">
+      <li>Decide who will be in your team (director, camera, actor, sound).</li>
+      <li>Draw your storyboard below (show what happens in each scene).</li>
+      <li>Make a list of props and equipment you will need.</li>
+      <li>Write a short script or notes for your actors.</li>
+      <li>Check that your camera and tripod are ready to use.</li>
+    </ul>
+
+    <div class="form-block">
+      <div class="form-row">
+        <label for="teamRoles">Who is in your team and what is their role?</label>
+        <textarea data-save name="teamRoles" id="teamRoles" placeholder="Director: ___&#10;Camera: ___&#10;Actor(s): ___&#10;Sound: ___"></textarea>
+      </div>
+
+      <div class="drawing-block">
+        <label>Storyboard (upload a photo of your storyboard drawing)</label>
+        <div class="drawing-upload-area">
+          <div class="drawing-upload-area-inner">
+            <strong>Upload storyboard photo</strong>
+            <div>Take a picture or choose a file of your storyboard frames.</div>
+            <input
+              data-save
+              type="file"
+              accept="image/*"
+              name="storyboardImage"
+              id="storyboardImage"
+              data-preview-target="#storyboardPreview"
+              style="cursor:pointer;"
+            />
+          </div>
+        </div>
+        <img id="storyboardPreview" class="drawing-preview" alt="Storyboard preview" />
+      </div>
+
+      <div class="form-row">
+        <label for="propsList">Props and equipment needed:</label>
+        <textarea data-save name="propsList" id="propsList" placeholder="Props: ___&#10;Equipment: camera, tripod, mic..."></textarea>
+      </div>
+
+      <div class="form-row">
+        <label for="scriptNotes">Short script / actor notes:</label>
+        <textarea data-save name="scriptNotes" id="scriptNotes" placeholder="Scene 1: ...&#10;Actor says..."></textarea>
+      </div>
+
+      <div class="form-row">
+        <label for="checkGear">Is the camera + tripod ready? Any issues?</label>
+        <textarea data-save name="checkGear" id="checkGear" placeholder="Camera battery is... Tripod is..."></textarea>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-card">
+    <h2 class="section-title">Reflection / Feedback</h2>
+
+    <div class="form-block">
+      <div class="form-row">
+        <label for="preRole">What is your role in the team?</label>
+        <textarea data-save name="preRole" id="preRole"></textarea>
+      </div>
+
+      <div class="form-row">
+        <label for="preHelp">How did you help plan the film?</label>
+        <textarea data-save name="preHelp" id="preHelp"></textarea>
+      </div>
+
+      <div class="form-row">
+        <label for="preFirst">What will you do first when filming starts?</label>
+        <textarea data-save name="preFirst" id="preFirst"></textarea>
+      </div>
+    </div>
+
+    <div class="action-row">
+      <button class="btn" id="exportBtn" type="button">Export My Work (.json)</button>
+      <div class="save-status"> </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  Oak Hill Media Lab · Pre-Production Stage
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,262 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Oak Hill Media Lab</title>
-  <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="style.css" />
-  <meta name="theme-color" content="#ffffff">
-  <link rel="icon" type="image/png" href="favicon.png">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Oak Hill Media Lab | Worksheets</title>
+<link rel="stylesheet" href="style.css" />
 </head>
-<body>
-  <a href="#main" class="skip-link">Skip to main content</a>
-  <div id="liveRegion" class="sr-only" aria-live="polite" aria-atomic="true"></div>
-  <header class="app-header" role="banner">
-    <img src="assets/logo.png" alt="Oak Hill Media Lab logo" class="logo" />
-    <h1 id="appTitle">Oak Hill Media Lab</h1>
-    <div class="header-actions">
-      <button id="themeToggle" aria-pressed="false" title="Toggle high contrast">High Contrast</button>
-      <button id="dysToggle" aria-pressed="false" title="Toggle dyslexia-friendly font">Dyslexia Font</button>
-      <span id="userChip" class="chip" hidden></span>
-      <button id="logoutBtn" class="secondary" hidden>Log out</button>
-    </div>
-  </header>
+<body data-page="home">
 
-  <main id="app" role="main">
-    <section id="view-login" class="view active" aria-labelledby="loginHeading">
-      <h2 id="loginHeading">Sign in</h2>
-      <p class="muted">Use your school account. (Demo mode stores accounts in your browser.)</p>
-      <form id="loginForm" class="card" autocomplete="on">
-        <label>Email <input id="loginEmail" autocomplete="email" type="email" required autocomplete="email" /></label>
-        <label>Password <input id="loginPass" autocomplete="current-password" type="password" required autocomplete="current-password"/></label>
-        <button type="submit">Sign in</button>
-      </form>
-      <details class="help"><summary>First time?</summary><p>Admin demo: <code>admin@oakhill.local</code> / <code>admin123</code></p></details>
-    </section>
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="index.html">
+      <div class="brand-logo"><div>📽</div></div>
+      <div>Oak Hill Media Lab</div>
+    </a>
 
-    <section id="view-student" class="view" aria-labelledby="studentHeading">
-<!-- Student – Notifications -->
-<div class="card" id="studentNotifications" aria-live="polite">
-  <h3>Notifications</h3>
-  <ul class="list" id="studentNotices"></ul>
-</div>
-
-      <h2 id="studentHeading">Student Dashboard</h2>
-      <div class="progress-wrap card">
-        <div>
-          <strong>Overall Progress</strong>
-          <div id="progressBar" class="progress"><div id="progressFill" style="width:0%"></div></div>
-          <span id="progressText">0% complete</span>
-        </div>
-        <div class="stage-actions">
-          <button id="exportMyData" class="secondary">Export my data (JSON)</button>
-          <button id="certificateBtn" class="secondary">Generate Certificate</button>
-        </div>
-      </div>
-      <div id="stagesContainer" class="stage-grid"></div>
-    </section>
-
-    <section id="view-teacher" class="view" aria-labelledby="teacherHeading">
-<!-- SEN-Friendly Teacher Dashboard -->
-<section class="teacher-queues grid">
-  <div class="card queue">
-    <h4>Needs Review</h4>
-    <div id="qPending" class="list"></div>
+    <nav class="nav-links">
+      <a href="development.html">Development</a>
+      <a href="preproduction.html">Pre-Production</a>
+      <a href="production.html">Production</a>
+      <a href="postproduction.html">Post-Production</a>
+    </nav>
   </div>
-  <div class="card queue">
-    <h4>In Conversation</h4>
-    <div id="qConversation" class="list"></div>
-  </div>
-  <div class="card queue">
-    <h4>Reviewed</h4>
-    <div id="qReviewed" class="list"></div>
-  </div>
-</section>
+</header>
 
-<!-- Teacher – Submissions dashboard -->
-<div class="card">
-  <h3>Submissions overview</h3>
-  <div class="toolbar">
-    <label>Filter:
-      <select id="subFilter">
-        <option value="all">All</option>
-        <option value="pending">Pending review</option>
-        <option value="reviewed">Reviewed</option>
-        <option value="needs_changes">Needs changes</option>
-      </select>
-    </label>
-    <label>Stage:
-      <select id="subStageFilter">
-        <option value="all">All stages</option>
-        <option value="development">Development</option>
-        <option value="preproduction">Pre-Production</option>
-        <option value="production">Production</option>
-        <option value="postproduction">Post-Production</option>
-      </select>
-    </label>
-  </div>
-  <div id="teacherSubmissions" class="list"></div>
-</div>
+<main class="page-wrap">
+  <section class="grid-stage-menu">
 
-      <h2 id="teacherHeading">Teacher Dashboard</h2>
-      <div class="toolbar">
-        <input id="searchStudent" type="search" placeholder="Search students…" aria-label="Search students"/>
-        <button id="exportCSV" class="secondary">Export Progress (CSV)</button>
-      </div>
-      <div id="teacherList" class="list"></div>
+    <a class="stage-card" href="development.html">
+      <h2>
+        <span>Development</span>
+        <span class="stage-pill">Stage 1</span>
+      </h2>
+      <p>Plan your story idea. Create characters. Explain what happens in the beginning, middle, and end.</p>
+    </a>
 
-      <dialog id="studentModal" aria-label="Review student work">
-        <form method="dialog">
-          <h3 id="studentModalTitle">Review</h3>
-          <div id="studentReviewContent"></div>
-          <menu><button value="cancel" class="secondary" aria-label="Close worksheet dialog">Close</button></menu>
-        </form>
-      </dialog>
-    </section>
+    <a class="stage-card" href="preproduction.html">
+      <h2>
+        <span>Pre-Production</span>
+        <span class="stage-pill">Stage 2</span>
+      </h2>
+      <p>Organise your team, storyboard the scenes, gather props and equipment, and write short scripts.</p>
+    </a>
 
-    <section id="view-guardian" class="view" aria-labelledby="guardianHeading">
-      <h2 id="guardianHeading">Guardian View (Read-only)</h2>
-      <div id="guardianContent"></div>
-    </section>
+    <a class="stage-card" href="production.html">
+      <h2>
+        <span>Production</span>
+        <span class="stage-pill">Stage 3</span>
+      </h2>
+      <p>Film your scenes safely and work as part of a crew. Keep a log of what happened.</p>
+    </a>
 
-    <section id="view-admin" class="view" aria-labelledby="adminHeading">
-      <h2 id="adminHeading">Admin</h2>
-      <div class="grid">
-        <div class="card">
-          <h3>Create / Edit User</h3>
-          <form id="userForm">
-            <label>Display Name <input id="uName" required /></label>
-            <label>Email <input id="uEmail" autocomplete="email" type="email" required /></label>
-            <label>Password <input id="uPass" autocomplete="new-password" type="password" required /></label>
-            <label>Role
-              <select id="uRole" required>
-                <option value="student">Student</option>
-                <option value="teacher">Teacher</option>
-                <option value="admin">Admin</option>
-                <option value="guardian">Guardian (read-only)</option>
-              </select>
-            </label>
-            <label id="guardianOfWrap" class="hidden">Guardian of (student email)
-              <input id="guardianOf" type="email" placeholder="student@example.com" />
-            </label>
-            <button type="submit">Save User</button>
-          </form>
-        </div>
-        <div class="card"><h3>All Users</h3><div id="userTable" class="list"></div></div>
-        <div class="card">
-          <h3>Settings</h3>
-          <label><input type="checkbox" id="allowPDF" checked/> Allow PDF uploads</label>
-          <label><input type="checkbox" id="allowImages" checked/> Allow images (PNG/JPG)</label>
-          <label><input type="checkbox" id="allowVideo" checked/> Allow video (MP4)</label>
-          
-<h4>Stage Resources (URLs + separate uploads)</h4>
+    <a class="stage-card" href="postproduction.html">
+      <h2>
+        <span>Post-Production</span>
+        <span class="stage-pill">Stage 4</span>
+      </h2>
+      <p>Edit your footage, add music and titles, and reflect on what you’ve learned.</p>
+    </a>
 
-<!-- Development -->
-<h5>Development</h5>
-<label>Video URL <input id="devVideoUrl" placeholder="https://youtube.com/... or direct MP4 URL"/></label>
-<label>Word (Upload) <input id="devWordFile" type="file" accept=".doc,.docx"/></label><div id="devWordInfo" class="muted"></div>
-<label>PDF (Upload) <input id="devPdfFile" type="file" accept=".pdf"/></label><div id="devPdfInfo" class="muted"></div>
-<label>PPTX (Upload) <input id="devPptxFile" type="file" accept=".ppt,.pptx"/></label><div id="devPptxInfo" class="muted"></div>
-<label>INTO FILM Source <input id="resDev" placeholder="https://..."/></label>
+  </section>
+</main>
 
-<!-- Pre-Production -->
-<h5>Pre-Production</h5>
-<label>Video URL <input id="preVideoUrl" placeholder="https://youtube.com/... or direct MP4 URL"/></label>
-<label>Word (Upload) <input id="preWordFile" type="file" accept=".doc,.docx"/></label><div id="preWordInfo" class="muted"></div>
-<label>PDF (Upload) <input id="prePdfFile" type="file" accept=".pdf"/></label><div id="prePdfInfo" class="muted"></div>
-<label>PPTX (Upload) <input id="prePptxFile" type="file" accept=".ppt,.pptx"/></label><div id="prePptxInfo" class="muted"></div>
-<label>INTO FILM Source <input id="resPre" placeholder="https://..."/></label>
+<footer class="site-footer">
+  Oak Hill Media Lab · Student Film Journey
+</footer>
 
-<!-- Production -->
-<h5>Production</h5>
-<label>Video URL <input id="proVideoUrl" placeholder="https://youtube.com/... or direct MP4 URL"/></label>
-<label>Word (Upload) <input id="proWordFile" type="file" accept=".doc,.docx"/></label><div id="proWordInfo" class="muted"></div>
-<label>PDF (Upload) <input id="proPdfFile" type="file" accept=".pdf"/></label><div id="proPdfInfo" class="muted"></div>
-<label>PPTX (Upload) <input id="proPptxFile" type="file" accept=".ppt,.pptx"/></label><div id="proPptxInfo" class="muted"></div>
-<label>INTO FILM Source <input id="resPro" placeholder="https://..."/></label>
-
-<!-- Post-Production -->
-<h5>Post-Production</h5>
-<label>Video URL <input id="postVideoUrl" placeholder="https://youtube.com/... or direct MP4 URL"/></label>
-<label>Word (Upload) <input id="postWordFile" type="file" accept=".doc,.docx"/></label><div id="postWordInfo" class="muted"></div>
-<label>PDF (Upload) <input id="postPdfFile" type="file" accept=".pdf"/></label><div id="postPdfInfo" class="muted"></div>
-<label>PPTX (Upload) <input id="postPptxFile" type="file" accept=".ppt,.pptx"/></label><div id="postPptxInfo" class="muted"></div>
-<label>INTO FILM Source <input id="resPost" placeholder="https://..."/></label>
-
-<button id="saveSettings" class="secondary">Save Settings</button>
-</div>
-</div>
-</section>
-
-  </main>
-
-  <footer class="app-footer" role="contentinfo"><small>© Oak Hill School Media Lab</small></footer>
-
-  <dialog id="worksheetDialog" aria-label="Worksheet" aria-modal="true" role="dialog">
-    <form method="dialog">
-      <h3 id="wsTitle">Worksheet</h3>
-      <p id="wsDesc" class="muted"></p>
-      <div id="wsForm" class="card"></div>
-      <menu><button value="cancel" class="secondary" aria-label="Close worksheet dialog">Close</button></menu>
-    </form>
-  </dialog>
-
-  <!-- Feedback dialog -->
-<dialog id="feedbackDialog" aria-label="Teacher Feedback" aria-modal="true" role="dialog">
-  <form method="dialog">
-    <h3 id="fbTitle">Review Submission</h3>
-    <p id="fbMeta" class="muted"></p>
-
-    <div class="grid">
-      <div class="card">
-        <h4>Rubric</h4>
-        <div class="rubric-rows" id="fbRubric"></div>
-      </div>
-
-      <div class="card">
-        <h4>Comments</h4>
-        <label class="block">
-          <span class="sr-only">Add text feedback</span>
-          <textarea id="fbText" rows="5" placeholder="Short, clear, encouraging feedback…" required></textarea>
-        </label>
-
-        <div class="audio-bar">
-          <button type="button" id="fbRecordBtn" class="btn" aria-pressed="false">🎙️ Record</button>
-          <span id="fbRecordStatus" class="muted">Not recording</span>
-          <audio id="fbAudioPreview" controls class="hidden"></audio>
-        </div>
-
-        <div class="toolbar">
-          <label>Status:
-            <select id="fbStatus">
-              <option value="reviewed">Reviewed (Good to go)</option>
-              <option value="needs_changes">Needs changes</option>
-            </select>
-          </label>
-          <button type="button" id="fbSave" class="btn">Save feedback</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <h4>Conversation</h4>
-        <div id="fbThread" class="thread" aria-live="polite"></div>
-        <div class="thread-reply">
-          <input id="fbReply" placeholder="Reply to this submission…" />
-          <button type="button" id="fbSendReply" class="btn">Send</button>
-        </div>
-      </div>
-    </div>
-
-    <menu>
-      <button value="cancel" class="secondary" aria-label="Close feedback dialog">Close</button>
-    </menu>
-  </form>
-</dialog>
-
-
-
-  <script src="idb.js?v=12"></script>
-  <script src="app.js?v=12"></script>
+<script src="app.js"></script>
 </body>
 </html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Development Worksheet – Oak Hill Media Lab</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body data-page="development">
+
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="index.html">
+      <div class="brand-logo"><div>📽</div></div>
+      <div>Oak Hill Media Lab</div>
+    </a>
+
+    <nav class="nav-links">
+      <a class="stage-active" href="development.html">Development</a>
+      <a href="preproduction.html">Pre-Production</a>
+      <a href="production.html">Production</a>
+      <a href="postproduction.html">Post-Production</a>
+    </nav>
+  </div>
+</header>
+
+<main class="page-wrap">
+
+  <section class="page-head">
+    <div class="page-head-left">
+      <h1>
+        <span>Development Worksheet – Create Your Idea</span>
+        <span class="stage-pill">Stage: Development</span>
+      </h1>
+    </div>
+
+    <div class="meta-fields">
+      <div class="meta-field">
+        <label for="studentName">Student Name</label>
+        <input data-save name="studentName" id="studentName" type="text" placeholder="Your name" />
+      </div>
+      <div class="meta-field">
+        <label for="dateField">Date</label>
+        <input data-save name="dateField" id="dateField" type="text" placeholder="25/10/2025" />
+      </div>
+    </div>
+  </section>
+
+  <section class="section-card">
+    <h2 class="section-title">Learning Objectives</h2>
+    <ul class="task-list">
+      <li>Understand what makes a good story or idea.</li>
+      <li>Create and share a simple film concept.</li>
+    </ul>
+  </section>
+
+  <section class="section-card">
+    <h2 class="section-title">Your Tasks</h2>
+    <ul class="task-list">
+      <li>Think of an idea for your short film (e.g. friendship, school life, challenge).</li>
+      <li>Write your main idea below or draw it in pictures.</li>
+      <li>Describe your main character(s).</li>
+      <li>Write or draw your story outline (beginning, middle, end).</li>
+      <li>Share your idea with your group or teacher.</li>
+    </ul>
+
+    <div class="form-block">
+      <div class="form-row">
+        <label for="filmIdea">Your main idea (or draw it):</label>
+        <textarea data-save name="filmIdea" id="filmIdea" placeholder="My film is about..."></textarea>
+      </div>
+
+      <div class="drawing-block">
+        <label>Upload / draw your idea</label>
+        <div class="drawing-upload-area">
+          <div class="drawing-upload-area-inner">
+            <strong>Upload a sketch / storyboard frame</strong>
+            <div>Take a photo of your drawing or choose a file.</div>
+            <input
+              data-save
+              type="file"
+              accept="image/*"
+              name="ideaImage"
+              id="ideaImage"
+              data-preview-target="#ideaImagePreview"
+              style="cursor:pointer;"
+            />
+          </div>
+        </div>
+        <img id="ideaImagePreview" class="drawing-preview" alt="Your uploaded idea preview" />
+      </div>
+
+      <div class="form-row">
+        <label for="characters">Describe your main character(s):</label>
+        <textarea data-save name="characters" id="characters" placeholder="The main character is..."></textarea>
+      </div>
+
+      <div class="form-row">
+        <label for="outline">Story outline (beginning, middle, end):</label>
+        <textarea data-save name="outline" id="outline" placeholder="Beginning: ...&#10;Middle: ...&#10;End: ..."></textarea>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-card">
+    <h2 class="section-title">Reflection / Feedback</h2>
+
+    <div class="form-block">
+      <div class="form-row">
+        <label for="q1">What is your film idea about?</label>
+        <textarea data-save name="q1" id="q1"></textarea>
+      </div>
+
+      <div class="form-row">
+        <label for="q2">What do you like most about your idea?</label>
+        <textarea data-save name="q2" id="q2"></textarea>
+      </div>
+
+      <div class="form-row">
+        <label for="q3">Who will enjoy watching your film?</label>
+        <textarea data-save name="q3" id="q3"></textarea>
+      </div>
+    </div>
+
+    <div class="action-row">
+      <button class="btn" id="exportBtn" type="button">Export My Work (.json)</button>
+      <div class="save-status"> </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  Oak Hill Media Lab · Development Stage
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

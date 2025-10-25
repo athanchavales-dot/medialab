@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Post-Production Worksheet – Oak Hill Media Lab</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body data-page="postproduction">
+
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="index.html">
+      <div class="brand-logo"><div>📽</div></div>
+      <div>Oak Hill Media Lab</div>
+    </a>
+
+    <nav class="nav-links">
+      <a href="development.html">Development</a>
+      <a href="preproduction.html">Pre-Production</a>
+      <a href="production.html">Production</a>
+      <a class="stage-active" href="postproduction.html">Post-Production</a>
+    </nav>
+  </div>
+</header>
+
+<main class="page-wrap">
+
+  <section class="page-head">
+    <div class="page-head-left">
+      <h1>
+        <span>Post-Production Worksheet – Edit and Reflect</span>
+        <span class="stage-pill">Stage: Post-Production</span>
+      </h1>
+    </div>
+
+    <div class="meta-fields">
+      <div class="meta-field">
+        <label for="studentName">Student Name</label>
+        <input data-save name="studentName" id="studentName" type="text" placeholder="Your name" />
+      </div>
+      <div class="meta-field">
+        <label for="dateField">Date</label>
+        <input data-save name="dateField" id="dateField" type="text" placeholder="25/10/2025" />
+      </div>
+    </div>
+  </section>
+
+  <section class="section-card">
+    <h2 class="section-title">Learning Objectives</h2>
+    <ul class="task-list">
+      <li>Learn basic video editing.</li>
+      <li>Add music, sound effects, and titles.</li>
+      <li>Reflect on what was learned.</li>
+    </ul>
+  </section>
+
+  <section class="section-card">
+    <h2 class="section-title">Your Tasks</h2>
+    <ul class="task-list">
+      <li>Import your footage into the editing software (e.g. iMovie or Clipchamp).</li>
+      <li>Cut out parts you don’t need.</li>
+      <li>Add music, titles, and transitions.</li>
+      <li>Watch your edited film and share feedback with your team.</li>
+      <li>Write your final reflection below.</li>
+    </ul>
+
+    <div class="form-block">
+      <div class="form-row">
+        <label for="editNotes">Editing notes (what did you cut / change?):</label>
+        <textarea data-save name="editNotes" id="editNotes" placeholder="I removed... I added..."></textarea>
+      </div>
+
+      <div class="form-row">
+        <label for="musicTitles">Music / titles / transitions added:</label>
+        <textarea data-save name="musicTitles" id="musicTitles" placeholder="We added music in scene 2, added title 'The Chase'..."></textarea>
+      </div>
+
+      <div class="drawing-block">
+        <label>Upload screenshot of your edit timeline (optional)</label>
+        <div class="drawing-upload-area">
+          <div class="drawing-upload-area-inner">
+            <strong>Upload timeline screenshot</strong>
+            <div>Take a screenshot of iMovie / Clipchamp timeline and add it here.</div>
+            <input
+              data-save
+              type="file"
+              accept="image/*"
+              name="timelineImage"
+              id="timelineImage"
+              data-preview-target="#timelinePreview"
+              style="cursor:pointer;"
+            />
+          </div>
+        </div>
+        <img id="timelinePreview" class="drawing-preview" alt="Editing timeline preview" />
+      </div>
+    </div>
+  </section>
+
+  <section class="section-card">
+    <h2 class="section-title">Reflection / Feedback</h2>
+
+    <div class="form-block">
+      <div class="form-row">
+        <label for="postLearn">What did you learn about editing?</label>
+        <textarea data-save name="postLearn" id="postLearn"></textarea>
+      </div>
+
+      <div class="form-row">
+        <label for="postFav">What is your favourite part of your finished film?</label>
+        <textarea data-save name="postFav" id="postFav"></textarea>
+      </div>
+
+      <div class="form-row">
+        <label for="postChange">If you could change one thing, what would it be?</label>
+        <textarea data-save name="postChange" id="postChange"></textarea>
+      </div>
+    </div>
+
+    <div class="action-row">
+      <button class="btn" id="exportBtn" type="button">Export My Work (.json)</button>
+      <div class="save-status"> </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  Oak Hill Media Lab · Post-Production Stage
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
