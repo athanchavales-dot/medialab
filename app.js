@@ -528,8 +528,43 @@ async function openWorksheet(stage){
   save.type='button'; 
   save.textContent='Save Draft'; 
   save.className='secondary';
-  save.onclick=async()=>{
-    const data={};
+  save.onclick = async () => {
+  if (!session || !session.email) {
+    alert('Please sign in first so we can save your work.');
+    return;
+  }
+
+  const data = {};
+  for (const field of WORKSHEETS[stage]) {
+    const el = document.getElementById(field.id);
+    data[field.id] = el ? el.value.trim() : '';
+  }
+
+  let sub = await getSubmission(session.email, stage);
+  if (!sub) {
+    sub = {
+      id: session.email + '::' + stage,
+      email: session.email,
+      stage: stage,
+      data: {},
+      status: 'draft',
+      ts: Date.now()
+    };
+  }
+
+  sub.data = data;
+  sub.ts = Date.now();
+
+  await idb.put('submissions', sub);
+
+  const live = document.getElementById('liveRegion');
+  if (live) live.textContent = 'Worksheet saved.';
+
+  const latest = await getSubmission(session.email, stage);
+  const statusNow = latest && latest.status ? latest.status : 'draft';
+  const badge = document.getElementById('st-status-' + stage);
+  if (badge) badge.textContent = statusNow;
+};
     for (const field of WORKSHEETS[stage]){
       const el=document.getElementById(field.id);
       data[field.id]=el?el.value.trim():'';
