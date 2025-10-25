@@ -1205,23 +1205,20 @@ document.addEventListener('DOMContentLoaded', function(){ initAccordionSteps(); 
     if (btn) btn.setAttribute('aria-pressed', 'false');
   }
 
-  document.addEventListener('click', function(e){
-    var t = e.target;
-    if (t && t.matches('[data-voice-target]')){
-      var id = t.getAttribute('data-voice-target');
-      var wrap = t.closest('.voice-bar');
-      var langSel = wrap ? wrap.querySelector('.voice-lang') : null;
-      var lang = langSel ? langSel.value : 'en-GB';
-      if (t.getAttribute('aria-pressed') === 'true'){
-        stopDictate(id);
-      } else {
-        // stop any other active
-        Object.keys(active).forEach(stopDictate);
-        t.setAttribute('aria-pressed', 'true');
-        startDictate(id, lang);
-      }
+  document.addEventListener('click', function (e) {
+  const t = e.target;
+  if (t && t.matches('[data-voice-target]')) {
+    const id = t.getAttribute('data-voice-target');
+    const lang = 'en-GB';
+    if (t.getAttribute('aria-pressed') === 'true') {
+      stopDictate(id);
+    } else {
+      Object.keys(active).forEach(stopDictate);
+      t.setAttribute('aria-pressed', 'true');
+      startDictate(id, lang);
     }
-  });
+  }
+});
 })();
 
 
